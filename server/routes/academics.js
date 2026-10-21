@@ -205,4 +205,97 @@ router.post('/generate-timetable', authenticate, authorize(['SUPER_ADMIN', 'PRIN
   });
 });
 
+// POST /api/academics/timetable/slot - Schedule lecture with Conflict Detection
+router.post('/timetable/slot', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  const { division_id, day_of_week, time_slot, subject_id, faculty_id, room_or_lab } = req.body;
+  if (!division_id || !day_of_week || !time_slot || !subject_id || !faculty_id || !room_or_lab) {
+    return res.status(400).json({ error: 'division_id, day_of_week, time_slot, subject_id, faculty_id, room_or_lab are all required' });
+  }
+
+  // 1. Faculty availability check (is faculty already booked in another division at this time?)
+  const facultyConflict = db.prepare(`
+    SELECT tt.*, div.name as division_name, sub.name as subject_name, f.full_name as faculty_name
+    FROM timetables tt
+    JOIN divisions div ON tt.division_id = div.id
+    JOIN courses_subjects sub ON tt.subject_id = sub.id
+    JOIN faculty f ON tt.faculty_id = f.id
+    WHERE tt.faculty_id = ? AND tt.day_of_week = ? AND tt.time_slot = ? AND tt.division_id != ?
+  `).get(faculty_id, day_of_week, time_slot, division_id);
+
+  if (facultyConflict) {
+    return res.status(409).json({
+      error: `Faculty Conflict: Prof. ${facultyConflict.faculty_name} is already assigned to ${facultyConflict.division_name} (${facultyConflict.subject_name}) at ${day_of_week} ${time_slot}.`,
+      conflictType: 'FACULTY_UNAVAILABLE',
+      conflictingSlot: facultyConflict
+    });
+  }
+
+  // 2. Room/Lab availability check (is classroom/lab already occupied by another division at this time?)
+  const roomConflict = db.prepare(`
+    SELECT tt.*, div.name as division_name, sub.name as subject_name
+    FROM timetables tt
+    JOIN divisions div ON tt.division_id = div.id
+    JOIN courses_subjects sub ON tt.subject_id = sub.id
+    WHERE tt.room_or_lab = ? AND tt.day_of_week = ? AND tt.time_slot = ? AND tt.division_id != ?
+  `).get(room_or_lab, day_of_week, time_slot, division_id);
+
+  if (roomConflict) {
+    return res.status(409).json({
+      error: `Room Conflict: ${room_or_lab} is already booked by ${roomConflict.division_name} (${roomConflict.subject_name}) at ${day_of_week} ${time_slot}.`,
+      conflictType: 'ROOM_OCCUPIED',
+      conflictingSlot: roomConflict
+    });
+  }
+
+  // Remove any existing slot for this division at the same day & time
+  db.prepare('DELETE FROM timetables WHERE division_id = ? AND day_of_week = ? AND time_slot = ?').run(division_id, day_of_week, time_slot);
+
+  const slotId = `tt-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO timetables (id, division_id, day_of_week, time_slot, subject_id, faculty_id, room_or_lab)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(slotId, division_id, day_of_week, time_slot, subject_id, faculty_id, room_or_lab);
+
+  res.status(201).json({
+    success: true,
+    message: 'Lecture slot scheduled successfully without conflicts',
+    slotId
+  });
+});
+
+// DELETE /api/academics/timetable/slot/:id - Delete a scheduled slot
+router.delete('/timetable/slot/:id', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  db.prepare('DELETE FROM timetables WHERE id = ?').run(req.params.id);
+  res.json({ success: true, message: 'Lecture slot removed from timetable' });
+});
+
+// GET /api/academics/timetable/conflict-check - Conflict evaluation pre-flight
+router.get('/timetable/conflict-check', authenticate, (req, res) => {
+  const { faculty_id, room_or_lab, day_of_week, time_slot, division_id } = req.query;
+
+  const facultyBusy = faculty_id ? db.prepare(`
+    SELECT tt.*, div.name as division_name, sub.name as subject_name, f.full_name as faculty_name
+    FROM timetables tt
+    JOIN divisions div ON tt.division_id = div.id
+    JOIN courses_subjects sub ON tt.subject_id = sub.id
+    JOIN faculty f ON tt.faculty_id = f.id
+    WHERE tt.faculty_id = ? AND tt.day_of_week = ? AND tt.time_slot = ?
+  `).get(faculty_id, day_of_week, time_slot) : null;
+
+  const roomBusy = room_or_lab ? db.prepare(`
+    SELECT tt.*, div.name as division_name, sub.name as subject_name
+    FROM timetables tt
+    JOIN divisions div ON tt.division_id = div.id
+    JOIN courses_subjects sub ON tt.subject_id = sub.id
+    WHERE tt.room_or_lab = ? AND tt.day_of_week = ? AND tt.time_slot = ?
+  `).get(room_or_lab, day_of_week, time_slot) : null;
+
+  res.json({
+    hasConflict: !!facultyBusy || !!roomBusy,
+    facultyConflict: facultyBusy || null,
+    roomConflict: roomBusy || null
+  });
+});
+
 module.exports = router;
+

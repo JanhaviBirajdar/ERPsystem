@@ -1,10 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const db = require('./db/database');
+const { connectDB, getCollection } = require('./config/database');
+const { seedMultiTenant } = require('./db/seedMultiTenant');
+const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize Database & Multi-Tenant Seed
+connectDB().then(async () => {
+  const institutions = getCollection('institutions');
+  const count = await institutions.countDocuments();
+  if (count === 0) {
+    await seedMultiTenant();
+  }
+}).catch(console.error);
 
 // Middleware
 app.use(cors());
@@ -22,7 +33,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
+// Phase 2 Modular MERN Multi-Tenant Routes
+app.use('/api/v1/auth', require('./routes/v1/auth.routes'));
+app.use('/api/v1/institution', require('./routes/v1/institution.routes'));
+app.use('/api/v1/academic-config', require('./routes/v1/academicConfig.routes'));
+app.use('/api/v1/audit', require('./routes/v1/audit.routes'));
+
+// Existing legacy endpoints (preserved for zero disruption)
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/institution', require('./routes/institution'));
 app.use('/api/students', require('./routes/students'));
@@ -44,12 +61,15 @@ app.use('/api/ai', require('./routes/aiCopilot'));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'HEALTHY',
-    service: 'Next-Generation College ERP System API',
-    version: '1.0.0',
-    timestamp: new Date().toISOString(),
-    institution: 'Dr. APJ Abdul Kalam Institute of Technology (AIT Pune)'
+    service: 'Modern College ERP SaaS (MERN Multi-Tenant)',
+    version: '2.0.0',
+    phase: 'PHASE_2_COMPLETED',
+    timestamp: new Date().toISOString()
   });
 });
+
+// Centralized RFC 7807 Error Handler
+app.use(errorHandler);
 
 // Serve frontend production build if available
 const clientDist = path.join(__dirname, '../client/dist');
@@ -65,6 +85,6 @@ app.use((req, res, next) => {
 
 // Start listening
 app.listen(PORT, () => {
-  console.log(`🚀 College ERP Backend running at http://localhost:${PORT}`);
+  console.log(`🚀 Modern College ERP SaaS Backend running at http://localhost:${PORT}`);
   console.log(`📡 Healthcheck available at http://localhost:${PORT}/api/health`);
 });

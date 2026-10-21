@@ -292,5 +292,71 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify({ prompt })
     }).then(handleResponse)
+  },
+
+  // Phase 2 Modular MERN Multi-Tenant v1 Endpoints
+  v1: {
+    auth: {
+      login: (username, password, tenantId) => fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, tenantId })
+      }).then(handleResponse),
+      getMe: () => fetch('/api/v1/auth/me', { headers: getHeaders() }).then(handleResponse),
+      logout: () => fetch('/api/v1/auth/logout', { method: 'POST', headers: getHeaders() }).then(handleResponse),
+      onboardCollege: (data) => fetch('/api/v1/auth/onboard-college', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(handleResponse)
+    },
+    institution: {
+      get: () => fetch('/api/v1/institution', { headers: getHeaders() }).then(handleResponse),
+      update: (data) => fetch('/api/v1/institution', {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      listAll: () => fetch('/api/v1/institution/all', { headers: getHeaders() }).then(handleResponse)
+    },
+    academicConfig: {
+      getAcademicYears: () => fetch('/api/v1/academic-config/academic-years', { headers: getHeaders() }).then(handleResponse),
+      createAcademicYear: (data) => fetch('/api/v1/academic-config/academic-years', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getDepartments: () => fetch('/api/v1/academic-config/departments', { headers: getHeaders() }).then(handleResponse),
+      createDepartment: (data) => fetch('/api/v1/academic-config/departments', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getCourses: () => fetch('/api/v1/academic-config/courses', { headers: getHeaders() }).then(handleResponse),
+      createCourse: (data) => fetch('/api/v1/academic-config/courses', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getSemesters: () => fetch('/api/v1/academic-config/semesters', { headers: getHeaders() }).then(handleResponse),
+      createSemester: (data) => fetch('/api/v1/academic-config/semesters', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getDivisions: () => fetch('/api/v1/academic-config/divisions', { headers: getHeaders() }).then(handleResponse),
+      createDivision: (data) => fetch('/api/v1/academic-config/divisions', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse)
+    },
+    audit: {
+      getLogs: (params = {}) => {
+        const q = new URLSearchParams(params).toString();
+        return fetch(`/api/v1/audit/logs?${q}`, { headers: getHeaders() }).then(handleResponse);
+      }
+    }
   }
 };
+

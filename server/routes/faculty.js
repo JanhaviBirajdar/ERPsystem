@@ -136,4 +136,122 @@ router.post('/', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL']), (req, re
   });
 });
 
+// PUT /api/faculty/:id/department - Department reallocation
+router.put('/:id/department', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  const { department_id } = req.body;
+  if (!department_id) return res.status(400).json({ error: 'department_id is required' });
+
+  const fac = db.prepare('SELECT * FROM faculty WHERE id = ?').get(req.params.id);
+  if (!fac) return res.status(404).json({ error: 'Faculty member not found' });
+
+  db.prepare('UPDATE faculty SET department_id = ? WHERE id = ?').run(department_id, req.params.id);
+  db.prepare('UPDATE users SET department_id = ? WHERE id = ?').run(department_id, fac.user_id);
+
+  logAudit(req.user.id, req.user.role, 'REALLOCATE_FACULTY_DEPT', 'FACULTY', req.params.id, { oldDept: fac.department_id, newDept: department_id }, req);
+
+  res.json({ success: true, message: 'Faculty department reallocated successfully' });
+});
+
+// POST /api/faculty/:id/subject-allocations - Allocate Subject
+router.post('/:id/subject-allocations', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  const { subject_id, division_id, academic_year_id = 'ay-2025-26' } = req.body;
+  if (!subject_id || !division_id) {
+    return res.status(400).json({ error: 'subject_id and division_id are required' });
+  }
+
+  const allocId = `alloc-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO subject_allocations (id, subject_id, faculty_id, division_id, academic_year_id)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(allocId, subject_id, req.params.id, division_id, academic_year_id);
+
+  res.status(201).json({ success: true, message: 'Subject allocated to faculty successfully', id: allocId });
+});
+
+// DELETE /api/faculty/subject-allocations/:allocId - Remove Subject Allocation
+router.delete('/subject-allocations/:allocId', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  db.prepare('DELETE FROM subject_allocations WHERE id = ?').run(req.params.allocId);
+  res.json({ success: true, message: 'Subject allocation removed' });
+});
+
+// POST /api/faculty/leaves - Apply for leave
+router.post('/leaves', authenticate, (req, res) => {
+  const { faculty_id, leave_type = 'CASUAL', start_date, end_date, days_count, reason } = req.body;
+  if (!start_date || !end_date || !reason) {
+    return res.status(400).json({ error: 'start_date, end_date, and reason are required' });
+  }
+
+  // Resolve faculty ID if applied by logged in faculty user
+  let facId = faculty_id;
+  if (!facId) {
+    const fac = db.prepare('SELECT id FROM faculty WHERE user_id = ?').get(req.user.id);
+    if (fac) facId = fac.id;
+  }
+  if (!facId) return res.status(400).json({ error: 'Could not resolve faculty profile for leave request' });
+
+  const id = `lv-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO faculty_leaves (id, faculty_id, leave_type, start_date, end_date, days_count, reason, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')
+  `).run(id, facId, leave_type, start_date, end_date, Number(days_count || 1), reason);
+
+  res.status(201).json({ success: true, message: 'Leave request submitted successfully', id });
+});
+
+// GET /api/faculty/leaves - Get leave requests
+router.get('/leaves', authenticate, (req, res) => {
+  let query = `
+    SELECT l.*, f.full_name as faculty_name, f.emp_code, d.name as department_name
+    FROM faculty_leaves l
+    JOIN faculty f ON l.faculty_id = f.id
+    JOIN departments d ON f.department_id = d.id
+  `;
+  const params = [];
+
+  if (req.user.role === 'FACULTY') {
+    query += ` WHERE f.user_id = ?`;
+    params.push(req.user.id);
+  }
+
+  query += ` ORDER BY l.applied_at DESC`;
+  const leaves = db.prepare(query).all(...params);
+
+  res.json({ leaves });
+});
+
+// PUT /api/faculty/leaves/:id/status - Approve or reject leave
+router.put('/leaves/:id/status', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  const { status, rejection_reason } = req.body;
+  if (!['APPROVED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be APPROVED or REJECTED' });
+  }
+
+  db.prepare(`
+    UPDATE faculty_leaves
+    SET status = ?, approved_by = ?, rejection_reason = ?
+    WHERE id = ?
+  `).run(status, req.user.id, rejection_reason || null, req.params.id);
+
+  res.json({ success: true, message: `Leave request ${status.toLowerCase()} successfully` });
+});
+
+// GET /api/faculty/workload/overview - Calculate faculty workload analytics
+router.get('/workload/overview', authenticate, (req, res) => {
+  const faculty = db.prepare(`
+    SELECT f.id, f.emp_code, f.full_name, f.designation, f.weekly_workload_hours as max_allowed_hours,
+           d.name as department_name, d.code as department_code,
+           COUNT(DISTINCT tt.id) as scheduled_lecture_hours,
+           COUNT(DISTINCT sa.id) as allocated_subjects_count
+    FROM faculty f
+    JOIN departments d ON f.department_id = d.id
+    LEFT JOIN timetables tt ON f.id = tt.faculty_id
+    LEFT JOIN subject_allocations sa ON f.id = sa.faculty_id
+    GROUP BY f.id
+    ORDER BY scheduled_lecture_hours DESC
+  `).all();
+
+  res.json({ workloadOverview: faculty });
+});
+
 module.exports = router;
+

@@ -383,3 +383,221 @@ CREATE INDEX IF NOT EXISTS idx_marks_student ON marks_entries(student_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_student ON student_invoices(student_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_student ON service_desk_tickets(student_id);
 CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_logs(created_at DESC);
+
+-- ============================================================================
+-- ACADEMIC & ADMINISTRATIVE MODULE EXTENSIONS
+-- ============================================================================
+
+-- 22. Admission Applications & Document Verification
+CREATE TABLE IF NOT EXISTS admissions_applications (
+    id TEXT PRIMARY KEY,
+    application_no TEXT NOT NULL UNIQUE,
+    candidate_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    category TEXT DEFAULT 'OPEN' CHECK(category IN ('OPEN', 'OBC', 'SC', 'ST', 'TFWS', 'EWS', 'MANAGEMENT')),
+    entrance_exam TEXT DEFAULT 'MHT-CET' CHECK(entrance_exam IN ('MHT-CET', 'JEE_MAIN', 'GATE', 'MANAGEMENT')),
+    entrance_score REAL NOT NULL,
+    entrance_rank INTEGER,
+    department_id TEXT NOT NULL REFERENCES departments(id),
+    tenth_pct REAL NOT NULL,
+    twelfth_pct REAL NOT NULL,
+    status TEXT DEFAULT 'APPLIED' CHECK(status IN ('APPLIED', 'DOCS_VERIFIED', 'ELIGIBLE', 'APPROVED', 'ENROLLED', 'REJECTED')),
+    verification_notes TEXT,
+    documents_json TEXT, -- JSON array of verified document names
+    approved_by TEXT REFERENCES users(id),
+    enrolled_student_id TEXT REFERENCES students(id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 23. Faculty Leave Requests
+CREATE TABLE IF NOT EXISTS faculty_leaves (
+    id TEXT PRIMARY KEY,
+    faculty_id TEXT NOT NULL REFERENCES faculty(id),
+    leave_type TEXT NOT NULL CHECK(leave_type IN ('CASUAL', 'MEDICAL', 'EARNED', 'DUTY', 'SPECIAL')),
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    days_count INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    approved_by TEXT REFERENCES users(id),
+    rejection_reason TEXT,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 24. Examination Schedules & Date Sheets
+CREATE TABLE IF NOT EXISTS exam_schedules (
+    id TEXT PRIMARY KEY,
+    examination_id TEXT NOT NULL REFERENCES examinations(id),
+    subject_id TEXT NOT NULL REFERENCES courses_subjects(id),
+    exam_date DATE NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
+    room_allocation TEXT NOT NULL,
+    max_marks REAL NOT NULL,
+    passing_marks REAL NOT NULL,
+    invigilator_faculty_id TEXT REFERENCES faculty(id)
+);
+
+-- 25. Marks Revaluation Requests
+CREATE TABLE IF NOT EXISTS revaluation_requests (
+    id TEXT PRIMARY KEY,
+    marks_entry_id TEXT NOT NULL REFERENCES marks_entries(id),
+    student_id TEXT NOT NULL REFERENCES students(id),
+    examination_id TEXT NOT NULL REFERENCES examinations(id),
+    subject_id TEXT NOT NULL REFERENCES courses_subjects(id),
+    original_marks REAL NOT NULL,
+    revised_marks REAL,
+    status TEXT DEFAULT 'SUBMITTED' CHECK(status IN ('SUBMITTED', 'UNDER_REVIEW', 'ACCEPTED', 'REJECTED')),
+    reason TEXT NOT NULL,
+    evaluator_remarks TEXT,
+    fee_paid INTEGER DEFAULT 1,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 26. Course Assignments & Submissions
+CREATE TABLE IF NOT EXISTS assignments (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    subject_id TEXT NOT NULL REFERENCES courses_subjects(id),
+    division_id TEXT NOT NULL REFERENCES divisions(id),
+    faculty_id TEXT NOT NULL REFERENCES faculty(id),
+    max_marks REAL DEFAULT 20,
+    due_date DATETIME NOT NULL,
+    attachment_url TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS assignment_submissions (
+    id TEXT PRIMARY KEY,
+    assignment_id TEXT NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+    student_id TEXT NOT NULL REFERENCES students(id),
+    submission_text TEXT,
+    file_url TEXT,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    marks_obtained REAL,
+    feedback TEXT,
+    status TEXT DEFAULT 'SUBMITTED' CHECK(status IN ('SUBMITTED', 'GRADED', 'LATE')),
+    UNIQUE(assignment_id, student_id)
+);
+
+-- 27. Academic Study Resources (Notes, Question Banks, Syllabus)
+CREATE TABLE IF NOT EXISTS academic_resources (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    subject_id TEXT NOT NULL REFERENCES courses_subjects(id),
+    module_number INTEGER DEFAULT 1,
+    resource_type TEXT NOT NULL CHECK(resource_type IN ('LECTURE_NOTES', 'QUESTION_BANK', 'SYLLABUS_COPY', 'REFERENCE_PAPER', 'LAB_MANUAL')),
+    file_url TEXT NOT NULL,
+    file_size_kb INTEGER DEFAULT 1024,
+    uploaded_by TEXT REFERENCES faculty(id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 28. Library Book Reservations
+CREATE TABLE IF NOT EXISTS library_reservations (
+    id TEXT PRIMARY KEY,
+    book_id TEXT NOT NULL REFERENCES library_books(id),
+    student_id TEXT NOT NULL REFERENCES students(id),
+    reserved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'QUEUED' CHECK(status IN ('QUEUED', 'AVAILABLE', 'FULFILLED', 'CANCELLED')),
+    expiry_date DATE
+);
+
+-- 29. Placement Interviews & Round Tracking
+CREATE TABLE IF NOT EXISTS placement_interviews (
+    id TEXT PRIMARY KEY,
+    application_id TEXT NOT NULL REFERENCES placement_applications(id),
+    drive_id TEXT NOT NULL REFERENCES placement_drives(id),
+    student_id TEXT NOT NULL REFERENCES students(id),
+    round_name TEXT NOT NULL CHECK(round_name IN ('ONLINE_TEST', 'TECHNICAL_ROUND_1', 'TECHNICAL_ROUND_2', 'MANAGERIAL_ROUND', 'HR_ROUND')),
+    scheduled_time DATETIME NOT NULL,
+    venue_or_link TEXT NOT NULL,
+    status TEXT DEFAULT 'SCHEDULED' CHECK(status IN ('SCHEDULED', 'CLEARED', 'REJECTED')),
+    feedback TEXT,
+    offered_ctc_lpa REAL
+);
+
+-- 30. Campus Operations: Hostel Management
+CREATE TABLE IF NOT EXISTS hostel_rooms (
+    id TEXT PRIMARY KEY,
+    hostel_name TEXT NOT NULL,
+    room_number TEXT NOT NULL,
+    floor INTEGER NOT NULL,
+    capacity INTEGER DEFAULT 3,
+    occupied_count INTEGER DEFAULT 0,
+    fee_per_semester REAL DEFAULT 35000,
+    UNIQUE(hostel_name, room_number)
+);
+
+CREATE TABLE IF NOT EXISTS hostel_allocations (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL UNIQUE REFERENCES students(id),
+    hostel_room_id TEXT NOT NULL REFERENCES hostel_rooms(id),
+    bed_number TEXT NOT NULL,
+    academic_year_id TEXT REFERENCES academic_years(id),
+    status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'VACATED')),
+    allocated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 31. Campus Operations: Transport Routes
+CREATE TABLE IF NOT EXISTS transport_routes (
+    id TEXT PRIMARY KEY,
+    route_number TEXT NOT NULL UNIQUE,
+    route_name TEXT NOT NULL,
+    bus_number TEXT NOT NULL,
+    driver_name TEXT NOT NULL,
+    driver_phone TEXT NOT NULL,
+    total_seats INTEGER DEFAULT 45,
+    occupied_seats INTEGER DEFAULT 0,
+    fee_annual REAL DEFAULT 18000
+);
+
+CREATE TABLE IF NOT EXISTS transport_allocations (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL UNIQUE REFERENCES students(id),
+    route_id TEXT NOT NULL REFERENCES transport_routes(id),
+    pickup_stop TEXT NOT NULL,
+    status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'CANCELLED')),
+    allocated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 32. Campus Operations: Equipment & Lab Inventory
+CREATE TABLE IF NOT EXISTS equipment_inventory (
+    id TEXT PRIMARY KEY,
+    item_code TEXT NOT NULL UNIQUE,
+    item_name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('LAB_EQUIPMENT', 'IT_HARDWARE', 'AUDIO_VISUAL', 'FURNITURE', 'ELECTRICAL')),
+    department_id TEXT REFERENCES departments(id),
+    room_or_lab TEXT NOT NULL,
+    purchase_date DATE,
+    warranty_status TEXT DEFAULT 'Active',
+    condition TEXT DEFAULT 'OPERATIONAL' CHECK(condition IN ('OPERATIONAL', 'MAINTENANCE_REQUIRED', 'DECOMMISSIONED'))
+);
+
+-- 33. Campus Operations: Facilities Maintenance Requests
+CREATE TABLE IF NOT EXISTS maintenance_requests (
+    id TEXT PRIMARY KEY,
+    request_no TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL CHECK(category IN ('ELECTRICAL', 'PLUMBING', 'HVAC', 'IT_NETWORK', 'CIVIL', 'LAB_EQUIPMENT')),
+    title TEXT NOT NULL,
+    description TEXT,
+    location TEXT NOT NULL,
+    priority TEXT DEFAULT 'NORMAL' CHECK(priority IN ('LOW', 'NORMAL', 'HIGH', 'URGENT')),
+    status TEXT DEFAULT 'OPEN' CHECK(status IN ('OPEN', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED')),
+    requested_by_user_id TEXT REFERENCES users(id),
+    assigned_technician TEXT,
+    resolution_notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Performance Indexes for New Modules
+CREATE INDEX IF NOT EXISTS idx_admissions_dept ON admissions_applications(department_id, status);
+CREATE INDEX IF NOT EXISTS idx_faculty_leaves ON faculty_leaves(faculty_id, status);
+CREATE INDEX IF NOT EXISTS idx_assignments_div ON assignments(division_id, subject_id);
+CREATE INDEX IF NOT EXISTS idx_interviews_drive ON placement_interviews(drive_id, status);
+CREATE INDEX IF NOT EXISTS idx_hostel_student ON hostel_allocations(student_id);
+CREATE INDEX IF NOT EXISTS idx_transport_student ON transport_allocations(student_id);
+CREATE INDEX IF NOT EXISTS idx_maint_status ON maintenance_requests(status);
+

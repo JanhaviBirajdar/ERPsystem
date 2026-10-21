@@ -190,4 +190,147 @@ router.get('/marksheet/:studentId', authenticate, (req, res) => {
   });
 });
 
+// POST /api/examination/schedules - Schedule an Examination Paper
+router.post('/schedules', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  const { examination_id, subject_id, exam_date, start_time, end_time, room_allocation, max_marks = 100, passing_marks = 40, invigilator_faculty_id } = req.body;
+  if (!examination_id || !subject_id || !exam_date || !start_time || !end_time || !room_allocation) {
+    return res.status(400).json({ error: 'examination_id, subject_id, exam_date, start_time, end_time, room_allocation are required' });
+  }
+
+  const id = `sched-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO exam_schedules (id, examination_id, subject_id, exam_date, start_time, end_time, room_allocation, max_marks, passing_marks, invigilator_faculty_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, examination_id, subject_id, exam_date, start_time, end_time, room_allocation, max_marks, passing_marks, invigilator_faculty_id || null);
+
+  res.status(201).json({ success: true, message: 'Examination paper scheduled successfully', id });
+});
+
+// GET /api/examination/schedules - List Exam Schedules
+router.get('/schedules', authenticate, (req, res) => {
+  const { examination_id } = req.query;
+  let query = `
+    SELECT es.*, e.name as exam_name, sub.name as subject_name, sub.code as subject_code,
+           f.full_name as invigilator_name
+    FROM exam_schedules es
+    JOIN examinations e ON es.examination_id = e.id
+    JOIN courses_subjects sub ON es.subject_id = sub.id
+    LEFT JOIN faculty f ON es.invigilator_faculty_id = f.id
+  `;
+  const params = [];
+  if (examination_id) {
+    query += ' WHERE es.examination_id = ?';
+    params.push(examination_id);
+  }
+  query += ' ORDER BY es.exam_date ASC, es.start_time ASC';
+
+  const schedules = db.prepare(query).all(...params);
+  res.json({ schedules });
+});
+
+// PUT /api/examination/exams/:id/publish - Publish Exam Results
+router.put('/exams/:id/publish', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL']), (req, res) => {
+  // Check if exam exists
+  const exam = db.prepare('SELECT * FROM examinations WHERE id = ?').get(req.params.id);
+  if (!exam) return res.status(404).json({ error: 'Exam not found' });
+
+  // Lock all marks for this examination upon official result publication
+  db.prepare('UPDATE marks_entries SET is_locked = 1 WHERE examination_id = ?').run(req.params.id);
+
+  logAudit(req.user.id, req.user.role, 'PUBLISH_EXAM_RESULTS', 'EXAMINATION', req.params.id, { examName: exam.name }, req);
+
+  res.json({ success: true, message: `Results for '${exam.name}' published successfully and marks locked.` });
+});
+
+// POST /api/examination/revaluation - Submit Revaluation Request
+router.post('/revaluation', authenticate, (req, res) => {
+  const { marks_entry_id, reason } = req.body;
+  if (!marks_entry_id || !reason) {
+    return res.status(400).json({ error: 'marks_entry_id and reason are required' });
+  }
+
+  const mark = db.prepare('SELECT * FROM marks_entries WHERE id = ?').get(marks_entry_id);
+  if (!mark) return res.status(404).json({ error: 'Marks entry not found' });
+
+  // Get student ID
+  let studentId = mark.student_id;
+  if (req.user.role === 'STUDENT') {
+    const s = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
+    if (!s || s.id !== mark.student_id) {
+      return res.status(403).json({ error: 'Cannot request revaluation for another student' });
+    }
+    studentId = s.id;
+  }
+
+  const id = `rev-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO revaluation_requests (id, marks_entry_id, student_id, examination_id, subject_id, original_marks, status, reason)
+    VALUES (?, ?, ?, ?, ?, ?, 'SUBMITTED', ?)
+  `).run(id, marks_entry_id, studentId, mark.examination_id, mark.subject_id, mark.marks_obtained, reason);
+
+  res.status(201).json({ success: true, message: 'Revaluation request submitted successfully', id });
+});
+
+// GET /api/examination/revaluation - View Revaluation Requests
+router.get('/revaluation', authenticate, (req, res) => {
+  let query = `
+    SELECT r.*, s.full_name as student_name, s.roll_no, s.prn,
+           e.name as exam_name, sub.name as subject_name, sub.code as subject_code
+    FROM revaluation_requests r
+    JOIN students s ON r.student_id = s.id
+    JOIN examinations e ON r.examination_id = e.id
+    JOIN courses_subjects sub ON r.subject_id = sub.id
+  `;
+  const params = [];
+
+  if (req.user.role === 'STUDENT') {
+    const s = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
+    if (s) {
+      query += ' WHERE r.student_id = ?';
+      params.push(s.id);
+    }
+  }
+
+  query += ' ORDER BY r.applied_at DESC';
+  const requests = db.prepare(query).all(...params);
+  res.json({ requests });
+});
+
+// PUT /api/examination/revaluation/:id/review - Review Revaluation & Update Marks
+router.put('/revaluation/:id/review', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+  const { status, revised_marks, evaluator_remarks } = req.body;
+  if (!['ACCEPTED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be ACCEPTED or REJECTED' });
+  }
+
+  const rev = db.prepare('SELECT * FROM revaluation_requests WHERE id = ?').get(req.params.id);
+  if (!rev) return res.status(404).json({ error: 'Revaluation request not found' });
+
+  const tx = db.transaction(() => {
+    db.prepare(`
+      UPDATE revaluation_requests
+      SET status = ?, revised_marks = ?, evaluator_remarks = ?
+      WHERE id = ?
+    `).run(status, revised_marks !== undefined ? Number(revised_marks) : null, evaluator_remarks || null, req.params.id);
+
+    // If accepted and revised marks provided, update the actual marks entry!
+    if (status === 'ACCEPTED' && revised_marks !== undefined) {
+      const exam = db.prepare('SELECT max_marks FROM examinations WHERE id = ?').get(rev.examination_id);
+      const pct = (Number(revised_marks) / (exam ? exam.max_marks : 100)) * 100;
+      const { grade_letter, grade_point } = calculateGrade(pct);
+
+      db.prepare(`
+        UPDATE marks_entries
+        SET marks_obtained = ?, grade_letter = ?, grade_point = ?
+        WHERE id = ?
+      `).run(Number(revised_marks), grade_letter, grade_point, rev.marks_entry_id);
+    }
+  });
+
+  tx();
+
+  res.json({ success: true, message: `Revaluation request ${status.toLowerCase()} and records synchronized.` });
+});
+
 module.exports = router;
+
