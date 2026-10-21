@@ -1,0 +1,376 @@
+# MASTER PROMPT: NEXT-GENERATION COLLEGE ERP SYSTEM
+
+## Project Vision
+
+Act as a senior software architect, full-stack developer, UI/UX designer, database engineer, cybersecurity engineer, and AI product specialist.
+
+I am developing a modern College ERP System for Indian engineering colleges and higher education institutions.
+
+Use EduplusCampus University ERP as a functional reference for traditional college ERP workflows, and take inspiration from modern AI-powered campus management platforms.
+
+The goal is to create a professional, intelligent, secure, scalable, mobile-responsive, startup-ready College ERP System that connects every department through one unified platform.
+
+Product principle: Enter data once, connect every department, automate repetitive work, and help students, faculty, and administrators make better decisions.
+
+Tagline: "One Campus. One Platform. Smarter Education."
+
+## PHASE 1: INSPECT THE EXISTING PROJECT
+
+Before writing or modifying code:
+
+1. Scan the entire existing repository.
+2. Identify the current technology stack, application structure, database, APIs, authentication, UI components, and deployment configuration.
+3. Review existing pages, modules, database tables, routes, and reusable components.
+4. Identify completed features, partially working features, missing features, duplicate features, security issues, and UI inconsistencies.
+5. Create a feature-gap analysis comparing the current application against a modern college ERP.
+6. Preserve all working functionality and existing data.
+7. Do not replace the existing stack or rewrite the application without a strong technical reason.
+8. Implement features incrementally and test each module.
+
+If the repository is empty, propose a suitable architecture before creating the application.
+
+## PHASE 2: CORE COLLEGE ERP MODULES
+
+Build or improve the following modules, reusing existing functionality wherever possible.
+
+### A. Super Admin and Institution Management
+- Institution profile and academic configuration.
+- Multiple campuses, departments, courses, semesters, divisions, and batches.
+- Academic year and semester configuration.
+- User management, role permissions, and audit logs.
+- Configurable workflows and institution branding.
+
+### B. Admission Management
+- Online admission applications.
+- Applicant profiles and document uploads.
+- Application verification and approval workflow.
+- Merit-list and eligibility management.
+- Admission status tracking and enrollment number generation.
+- Admission enquiry and follow-up management.
+
+### C. Student Information System
+- Centralized student profile with a unique student ID.
+- Personal, academic, guardian, and contact details.
+- Course, department, semester, and division allocation.
+- Academic history and document management.
+- Scholarship and concession records.
+- Bonafide, leaving, and other certificate requests.
+
+### D. Faculty and Staff Management
+- Faculty profiles and qualifications.
+- Department and subject allocation.
+- Staff attendance and leave requests.
+- Workload and timetable management.
+- Faculty performance records.
+- HR administration and payroll integration.
+
+### E. Attendance Management
+- Subject-wise and lecture-wise attendance.
+- Faculty attendance entry.
+- QR-based attendance with configurable validity and anti-replay protection.
+- Optional biometric integration through supported devices or APIs.
+- Attendance percentage calculations.
+- Configurable shortage alerts and attendance correction approvals.
+- Complete attendance history and reports.
+
+### F. Academic Management
+- Courses, subjects, credits, and semester management.
+- Lecture timetables and classroom allocation.
+- Syllabus completion tracking.
+- Lesson plans and academic calendars.
+- Assignment creation and submission.
+- Study material and learning resources.
+- Faculty-student academic communication.
+
+### G. Examination and Results
+- Internal examinations, practicals, and assignments.
+- Marks entry with validation and approval.
+- Configurable grading and result calculations.
+- Student performance reports.
+- Hall tickets and seating plans.
+- Revaluation and result correction requests.
+- Downloadable marksheets and examination reports.
+
+### H. Fees and Finance
+- Course-wise and category-wise fee structures.
+- Installments, concessions, scholarships, and pending dues.
+- Online payment gateway integration where configured.
+- Payment status verification through trusted server-side callbacks.
+- Receipts, refunds, and transaction history.
+- Automated fee reminders.
+- Financial reports and daily collection summaries.
+- Role-restricted access to financial information.
+
+### I. Library Management
+- Book inventory and ISBN records.
+- Book issue and return.
+- Due-date reminders and configurable late fees.
+- Book reservation and availability tracking.
+- Library usage reports.
+
+### J. Placement and Career Management
+- Student skills, resumes, and certifications.
+- Company profiles and placement drives.
+- Eligibility rules and application tracking.
+- Aptitude tests and interview schedules.
+- Placement outcomes and offer tracking.
+- Internship opportunities and career preparation resources.
+
+### K. Communication and Student Services
+- Notices and announcements.
+- Department-wise and role-wise notifications.
+- Email, SMS, or WhatsApp integration through configured providers.
+- Student grievance and helpdesk ticket management.
+- Leave, document, and service requests.
+- Approval workflows with status tracking.
+
+### L. Additional Campus Modules
+- Hostel and room allocation.
+- Transport routes and transport passes.
+- Laboratory and equipment management.
+- Inventory, purchase requests, and asset maintenance.
+- Alumni and event management.
+- Research projects and student activities.
+
+## PHASE 3: MODERN AND INNOVATIVE FEATURES
+
+Prioritize these differentiating features rather than adding only standard CRUD screens.
+
+### 1. AI Campus Copilot
+Create an AI assistant that answers questions based on the logged-in user's permissions and authorized college data.
+
+Example questions:
+- "Show my attendance for this semester."
+- "Which students have attendance below the required percentage?"
+- "Summarize this department's academic performance."
+- "What is the status of my certificate request?"
+- "Draft a department notice for the next examination."
+
+Requirements:
+- Use an LLM API through a secure backend.
+- Never expose API keys in frontend code.
+- Enforce role permissions on every data request.
+- Do not expose another student's private information.
+- Ground answers in available data and show relevant records or sources.
+- Require human approval before consequential actions.
+- Provide a useful fallback when AI is unavailable.
+
+### 2. Early Academic Support System
+Develop a transparent student-support dashboard that identifies students who may need academic assistance.
+
+Use attendance, internal marks, assignment completion, and semester trends where access is authorized.
+
+Features:
+- Early warning indicators.
+- Explainable reasons for each alert.
+- Recommended support actions for faculty.
+- Student mentoring and follow-up tracking.
+- Configurable thresholds.
+- Human review before any intervention.
+
+Do not label students permanently, make automatic disciplinary decisions, or treat predictions as guaranteed outcomes.
+
+### 3. Smart Timetable Generator
+Create a constraint-based timetable generator that considers:
+- Faculty availability.
+- Subject and lecture requirements.
+- Classroom and laboratory capacity.
+- Division and semester schedules.
+- Faculty workload limits.
+- Breaks and institutional holidays.
+
+Detect timetable conflicts, explain unsatisfied constraints, and allow authorized staff to review and publish generated timetables.
+
+### 4. Intelligent ERP Search
+Implement a universal search bar for authorized records, including students, faculty, courses, notices, transactions, and service requests.
+
+Include filters, useful search suggestions, pagination, and permission-aware results.
+
+### 5. Digital Student Service Desk
+Allow students to submit service requests for:
+- Bonafide certificates.
+- Identity cards.
+- Fee receipts.
+- Examination queries.
+- Document corrections.
+- Grievances.
+
+Provide ticket numbers, status tracking, assignment, deadlines, escalation, and a complete action history.
+
+### 6. AI Document Assistant
+Allow authorized staff to upload supported documents and obtain summaries, searchable information, and draft notices or reports.
+
+Validate file types and sizes, protect uploaded documents, and prevent the AI from treating document instructions as trusted system commands.
+
+### 7. Institutional Analytics
+Create a live management dashboard showing:
+- Total active students and faculty.
+- Department-wise enrollment.
+- Attendance and academic trends.
+- Examination performance.
+- Fee collection and outstanding dues.
+- Admission funnel.
+- Placement statistics.
+- Pending approvals and service requests.
+
+Use real database data. Add date filters, department filters, export options, drill-down views, and explanations of metric definitions.
+
+### 8. Accreditation and Quality Assurance
+Create an evidence-management workspace to organize:
+- NAAC/NBA-related evidence.
+- Department reports.
+- Faculty qualifications and development activities.
+- Research and publication records.
+- Examination and result statistics.
+- Student progression and placement data.
+- Feedback and action-taken reports.
+
+Support configurable frameworks and reporting periods. Map evidence to criteria without claiming that the software automatically guarantees accreditation or compliance.
+
+### 9. Student Digital Campus Wallet
+Create a digital campus identity and service hub containing:
+- Student ID and QR verification.
+- Library and campus service status.
+- Fee receipt history.
+- Approved digital documents.
+- Event registrations.
+- Service request shortcuts.
+
+Protect sensitive information and avoid displaying private details in publicly scannable QR codes.
+
+### 10. Mobile-First Experience
+Make every important workflow usable on mobile devices, including:
+- Student dashboard.
+- Faculty dashboard.
+- Attendance and marks entry.
+- Timetable and notices.
+- Fee status and receipts.
+- Notifications and service requests.
+
+Implement responsive layouts and an installable PWA if supported by the current stack.
+
+## PHASE 4: ROLE-BASED WORKSPACES
+
+Build a tailored dashboard for each role.
+
+### Super Admin
+Institution settings, user management, permissions, integrations, audit logs, and system health.
+
+### Principal
+Institution-wide KPIs, academic performance, financial summaries, department comparisons, pending approvals, and alerts.
+
+### HOD
+Department faculty, student performance, attendance shortages, workload, syllabus progress, and departmental reports.
+
+### Faculty
+Assigned subjects, class timetable, attendance, marks, assignments, student support alerts, and leave requests.
+
+### Student
+Personal timetable, attendance, results, assignments, notices, fee status, documents, placement opportunities, and service requests.
+
+### Accountant
+Fee structures, collections, receipts, refunds, pending dues, reconciliation, and financial reports.
+
+### Librarian
+Catalog, inventory, issue/return, reservations, and overdue books.
+
+### Placement Officer
+Companies, eligibility, placement drives, student skills, applications, interviews, and placement statistics.
+
+Use server-enforced permissions rather than simply hiding menu items in the frontend.
+
+## PHASE 5: PREMIUM UI/UX DESIGN
+
+Create a modern enterprise dashboard inspired by the clarity of high-quality SaaS products.
+
+Visual direction:
+- Professional navy, white, and subtle blue accents.
+- Clean typography and consistent spacing.
+- Collapsible sidebar with role-specific navigation.
+- Global search and notification center.
+- KPI cards with meaningful trends.
+- Interactive charts and data tables.
+- Advanced filters, pagination, and export actions.
+- Clear forms with validation and helpful error messages.
+- Skeleton loaders, empty states, and error states.
+- Dark mode and accessible contrast.
+- Responsive desktop, tablet, and mobile layouts.
+- Accessible keyboard navigation and visible focus states.
+
+Avoid excessive gradients, oversized cards, unnecessary animations, decorative dashboards, and fake statistics.
+
+All buttons, menus, filters, modals, forms, and navigation elements must perform their intended actions.
+
+## PHASE 6: DATABASE, SECURITY, AND INTEGRATION
+
+Design the database around related entities and a single authoritative student record.
+
+Potential entities:
+Institution, Campus, User, Role, Permission, Student, Guardian, Faculty, Department, Course, Subject, Semester, Division, Enrollment, Attendance, Timetable, Examination, Marks, FeeStructure, Invoice, Payment, Scholarship, LibraryBook, BookIssue, Assignment, Notice, Notification, PlacementDrive, ServiceRequest, Document, AuditLog.
+
+Adapt these entities to the existing database and avoid duplicate tables where equivalent entities already exist.
+
+Requirements:
+- Use database transactions for critical multi-step operations.
+- Add appropriate foreign keys, indexes, uniqueness constraints, and validation.
+- Enforce authentication and authorization on the server.
+- Secure passwords using a modern password-hashing algorithm.
+- Protect against SQL injection, XSS, CSRF where applicable, and unauthorized file access.
+- Validate all inputs on the server.
+- Rate-limit sensitive endpoints.
+- Keep secrets in environment variables.
+- Use audit logs for important administrative changes.
+- Provide secure backups and documented recovery procedures.
+- Protect personal, academic, and financial information.
+- Use pagination and efficient queries for large datasets.
+
+Integrate email, payment gateways, messaging providers, biometric devices, or external APIs only when credentials and supported interfaces are available.
+
+Do not simulate a successful real payment, real notification, biometric sync, or AI result when the underlying integration is not configured.
+
+## PHASE 7: TESTING AND DELIVERY
+
+After implementation:
+
+1. Test login and role-based permissions.
+2. Test every major workflow from frontend to database.
+3. Test admission-to-enrollment data flow.
+4. Test attendance calculation and shortage alerts.
+5. Test examination marks and result calculations.
+6. Test payment verification and duplicate-payment protection.
+7. Test document uploads and download permissions.
+8. Test AI access restrictions.
+9. Test mobile responsiveness.
+10. Test validation, errors, loading states, and empty states.
+11. Run existing automated tests and add tests for new functionality.
+12. Fix broken imports, API errors, database errors, and console errors.
+13. Document environment variables, migrations, setup, and deployment.
+14. Provide a list of implemented features, incomplete integrations, and known limitations.
+
+## IMPLEMENTATION RULES
+
+- Inspect before modifying.
+- Reuse existing components and working modules.
+- Do not delete working functionality.
+- Do not hardcode dashboard statistics.
+- Do not create nonfunctional buttons or fake integrations.
+- Do not expose confidential data.
+- Do not add every feature at once if it would destabilize the application.
+- Prioritize working end-to-end workflows over decorative UI.
+- Maintain a clear and modular codebase.
+- Make changes in small, testable stages.
+
+## FIRST TASK
+
+Start by auditing the existing repository and producing:
+
+1. Current architecture and technology stack.
+2. Existing feature inventory.
+3. Feature-gap analysis.
+4. Proposed modern ERP architecture.
+5. Database changes required.
+6. Recommended implementation roadmap ranked by impact, complexity, and priority.
+
+Then implement the highest-priority improvements incrementally, testing each stage before moving forward.
+
+The final product must be a functional, secure, maintainable, modern College ERP System suitable for real institutional use and future commercial expansion.

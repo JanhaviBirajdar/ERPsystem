@@ -1,0 +1,21 @@
+{
+  "name": "college-erp-system",
+  "version": "1.0.0",
+  "description": "Next-Generation College ERP System - One Campus. One Platform. Smarter Education.",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "client": "npm --prefix client dev",
+    "seed": "npm --prefix server run seed",
+    "build": "npm --prefix client run build",
+    "test": "node server/tests/api.test.js"
+  },
+  "keywords": [
+    "college-erp",
+    "higher-education",
+    "campus-management",
+    "naac-nba",
+    "ai-campus-copilot"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "ISC"
+}
