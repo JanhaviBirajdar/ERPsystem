@@ -3,19 +3,22 @@ const cors = require('cors');
 const path = require('path');
 const { connectDB, getCollection } = require('./config/database');
 const { seedMultiTenant } = require('./db/seedMultiTenant');
+const { seedExtensions } = require('./db/seedExtensions');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize Database & Multi-Tenant Seed
+// Initialize Database & Seeds
 connectDB().then(async () => {
   const institutions = getCollection('institutions');
   const count = await institutions.countDocuments();
   if (count === 0) {
     await seedMultiTenant();
   }
+  seedExtensions();
 }).catch(console.error);
+
 
 // Middleware
 app.use(cors());
@@ -56,6 +59,15 @@ app.use('/api/naac', require('./routes/naac'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/ai', require('./routes/aiCopilot'));
+
+// Academic & Administrative Module Extensions
+app.use('/api/admissions', require('./routes/admissions'));
+app.use('/api/v1/admissions', require('./routes/admissions'));
+app.use('/api/assignments', require('./routes/assignments'));
+app.use('/api/v1/assignments', require('./routes/assignments'));
+app.use('/api/campus', require('./routes/campusOperations'));
+app.use('/api/v1/campus', require('./routes/campusOperations'));
+
 
 // Healthcheck
 app.get('/api/health', (req, res) => {

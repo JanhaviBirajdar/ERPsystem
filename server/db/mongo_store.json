@@ -1,0 +1,337 @@
+{
+  "institutions": [
+    {
+      "_id": "64f9a0011111111111111111",
+      "tenantCode": "AITPUNE",
+      "name": "Dr. APJ Abdul Kalam Institute of Technology",
+      "subdomain": "ait",
+      "affiliation": "State Technological University",
+      "naacGrade": "A++",
+      "aicteApprovalNo": "AICTE/WRO/1-42901844/2004",
+      "contact": {
+        "email": "principal@aitpune.edu.in",
+        "phone": "+91 20 2740 1200",
+        "address": "Knowledge City, Hinjawadi Infotech Park, Pune 411057"
+      },
+      "subscription": {
+        "plan": "ENTERPRISE",
+        "status": "ACTIVE"
+      },
+      "createdAt": "2026-10-21T12:02:07.385Z",
+      "updatedAt": "2026-10-21T12:02:07.385Z"
+    },
+    {
+      "_id": "64f9b0022222222222222222",
+      "tenantCode": "PIME",
+      "name": "Pune Institute of Modern Engineering",
+      "subdomain": "pime",
+      "affiliation": "Autonomous State Technical Board",
+      "naacGrade": "A",
+      "aicteApprovalNo": "AICTE/WRO/2-88192031/2012",
+      "contact": {
+        "email": "contact@pime.edu.in",
+        "phone": "+91 20 2550 8800",
+        "address": "Tech Valley Campus, Shivaji Nagar, Pune 411005"
+      },
+      "subscription": {
+        "plan": "STANDARD",
+        "status": "ACTIVE"
+      },
+      "createdAt": "2026-10-21T12:02:07.789Z",
+      "updatedAt": "2026-10-21T12:02:07.789Z"
+    }
+  ],
+  "users": [
+    {
+      "_id": "67e1b6e98e2997d6c08dc615",
+      "tenantId": null,
+      "username": "saas_admin",
+      "email": "superadmin@campuserp.io",
+      "passwordHash": "$2b$10$8g8/sGELXsezgletrBJJwuAX3g8CtHy.W11caaxiNO9P7TJknnw/e",
+      "role": "SUPER_ADMIN",
+      "fullName": "SaaS Platform Owner",
+      "isActive": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120",
+      "createdAt": "2026-10-21T12:02:07.383Z",
+      "updatedAt": "2026-10-21T12:02:07.383Z"
+    },
+    {
+      "_id": "be440e157277e706a921e182",
+      "tenantId": "64f9a0011111111111111111",
+      "username": "admin_ait",
+      "email": "admin@aitpune.edu.in",
+      "passwordHash": "$2b$10$UbwCmVYj2RZTYWz0eiRBv.TlwmqdSxx4tj3sNDhnvzwuyr.3GS3Sm",
+      "role": "COLLEGE_ADMIN",
+      "fullName": "Er. Sanjay Singhania (AIT Admin)",
+      "isActive": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120",
+      "createdAt": "2026-10-21T12:02:07.495Z",
+      "updatedAt": "2026-10-21T12:02:07.495Z"
+    },
+    {
+      "_id": "5d28c84aecd7cdfecec75214",
+      "tenantId": "64f9a0011111111111111111",
+      "username": "principal_ait",
+      "email": "principal@aitpune.edu.in",
+      "passwordHash": "$2b$10$QmPOeeYEYNawmRW8J1.fhOlhoT8yzxxbjivaioSXO9t9GDhkrACOO",
+      "role": "PRINCIPAL",
+      "fullName": "Dr. Anand M. Joshi (AIT Principal)",
+      "isActive": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120",
+      "createdAt": "2026-10-21T12:02:07.594Z",
+      "updatedAt": "2026-10-21T12:02:07.594Z"
+    },
+    {
+      "_id": "0d0e43002d8d432664765e62",
+      "tenantId": "64f9a0011111111111111111",
+      "username": "hod_comp_ait",
+      "email": "hod.comp@aitpune.edu.in",
+      "passwordHash": "$2b$10$QC620Jxhj.9nMAPsCHgjGe8bL4NXjq44of.RajMF1R/x9sjO8cd8G",
+      "role": "HOD",
+      "fullName": "Dr. Rajesh Sharma (HOD Comp)",
+      "departmentId": "64f9dc011111111111111111",
+      "isActive": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120",
+      "createdAt": "2026-10-21T12:02:07.692Z",
+      "updatedAt": "2026-10-21T12:02:07.692Z"
+    },
+    {
+      "_id": "fcd023fc4233abc6c26002aa",
+      "tenantId": "64f9a0011111111111111111",
+      "username": "faculty_mehta_ait",
+      "email": "p.mehta@aitpune.edu.in",
+      "passwordHash": "$2b$10$QVRCAl5Ut0SLKUA1gQRkf.g0E7swWHxXjJxpi7UDBDD1q21qQPRBe",
+      "role": "FACULTY",
+      "fullName": "Prof. Priya Mehta (Assoc. Prof)",
+      "departmentId": "64f9dc011111111111111111",
+      "isActive": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120",
+      "createdAt": "2026-10-21T12:02:07.787Z",
+      "updatedAt": "2026-10-21T12:02:07.787Z"
+    },
+    {
+      "_id": "52b52351568ead4874a0a05a",
+      "tenantId": "64f9b0022222222222222222",
+      "username": "admin_pime",
+      "email": "admin@pime.edu.in",
+      "passwordHash": "$2b$10$Q0q3iQKCgt4tpD3WxyKdO.Zo7TA8k3gBPZSjhw1w9HMJXufohagVa",
+      "role": "COLLEGE_ADMIN",
+      "fullName": "Er. Nitin Gadre (PIME Admin)",
+      "isActive": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120",
+      "createdAt": "2026-10-21T12:02:07.880Z",
+      "updatedAt": "2026-10-21T12:02:07.880Z"
+    }
+  ],
+  "academic_years": [
+    {
+      "_id": "64f9ay011111111111111111",
+      "tenantId": "64f9a0011111111111111111",
+      "name": "2026-2027",
+      "isCurrent": true,
+      "startDate": "2026-07-01T00:00:00.000Z",
+      "endDate": "2027-06-30T00:00:00.000Z",
+      "createdAt": "2026-10-21T12:02:07.386Z",
+      "updatedAt": "2026-10-21T12:02:07.386Z"
+    },
+    {
+      "_id": "a0f75bd7dc124402997d18d2",
+      "tenantId": "64f9b0022222222222222222",
+      "name": "2026-2027",
+      "isCurrent": true,
+      "startDate": "2026-07-01T00:00:00.000Z",
+      "endDate": "2027-06-30T00:00:00.000Z",
+      "createdAt": "2026-10-21T12:02:07.790Z",
+      "updatedAt": "2026-10-21T12:02:07.790Z"
+    }
+  ],
+  "departments": [
+    {
+      "_id": "64f9dc011111111111111111",
+      "tenantId": "64f9a0011111111111111111",
+      "code": "COMP",
+      "name": "Computer Engineering",
+      "hodName": "Dr. Rajesh Sharma",
+      "hodEmail": "hod.comp@aitpune.edu.in",
+      "intakeCapacity": 120,
+      "establishedYear": 2004,
+      "createdAt": "2026-10-21T12:02:07.392Z",
+      "updatedAt": "2026-10-21T12:02:07.392Z"
+    },
+    {
+      "_id": "64f9da011111111111111111",
+      "tenantId": "64f9a0011111111111111111",
+      "code": "AIDS",
+      "name": "Artificial Intelligence & Data Science",
+      "hodName": "Dr. Sneha Kulkarni",
+      "hodEmail": "hod.aids@aitpune.edu.in",
+      "intakeCapacity": 60,
+      "establishedYear": 2020,
+      "createdAt": "2026-10-21T12:02:07.393Z",
+      "updatedAt": "2026-10-21T12:02:07.393Z"
+    },
+    {
+      "_id": "64f9dit02222222222222222",
+      "tenantId": "64f9b0022222222222222222",
+      "code": "IT",
+      "name": "Information Technology",
+      "hodName": "Dr. Suresh Nadkarni",
+      "hodEmail": "hod.it@pime.edu.in",
+      "intakeCapacity": 60,
+      "establishedYear": 2012,
+      "createdAt": "2026-10-21T12:02:07.790Z",
+      "updatedAt": "2026-10-21T12:02:07.790Z"
+    },
+    {
+      "_id": "64f9dme02222222222222222",
+      "tenantId": "64f9b0022222222222222222",
+      "code": "MECH",
+      "name": "Mechanical Engineering",
+      "hodName": "Dr. Hemant Kulkarni",
+      "hodEmail": "hod.mech@pime.edu.in",
+      "intakeCapacity": 60,
+      "establishedYear": 2012,
+      "createdAt": "2026-10-21T12:02:07.791Z",
+      "updatedAt": "2026-10-21T12:02:07.791Z"
+    }
+  ],
+  "courses": [
+    {
+      "_id": "927eb5e9f527cf302b0e7104",
+      "tenantId": "64f9a0011111111111111111",
+      "code": "CS501",
+      "name": "Database Management Systems",
+      "departmentId": "64f9dc011111111111111111",
+      "semesterId": "64f9sem51111111111111111",
+      "credits": 4,
+      "theoryHours": 3,
+      "practicalHours": 2,
+      "syllabusModules": 6,
+      "createdAt": "2026-10-21T12:02:07.393Z",
+      "updatedAt": "2026-10-21T12:02:07.393Z"
+    },
+    {
+      "_id": "61dc21c05938cd7f772142a6",
+      "tenantId": "64f9a0011111111111111111",
+      "code": "CS502",
+      "name": "Theory of Computation",
+      "departmentId": "64f9dc011111111111111111",
+      "semesterId": "64f9sem51111111111111111",
+      "credits": 4,
+      "theoryHours": 3,
+      "practicalHours": 0,
+      "syllabusModules": 6,
+      "createdAt": "2026-10-21T12:02:07.394Z",
+      "updatedAt": "2026-10-21T12:02:07.394Z"
+    },
+    {
+      "_id": "dd16e46172c42b04909a9f14",
+      "tenantId": "64f9b0022222222222222222",
+      "code": "IT501",
+      "name": "Cloud Computing & Microservices",
+      "departmentId": "64f9dit02222222222222222",
+      "credits": 4,
+      "theoryHours": 3,
+      "practicalHours": 2,
+      "syllabusModules": 6,
+      "createdAt": "2026-10-21T12:02:07.792Z",
+      "updatedAt": "2026-10-21T12:02:07.792Z"
+    }
+  ],
+  "semesters": [
+    {
+      "_id": "8d4463d51269f3514913d41b",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 1,
+      "term": "ODD",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.387Z",
+      "updatedAt": "2026-10-21T12:02:07.387Z"
+    },
+    {
+      "_id": "b4bbc720913b2956fa6d0ca0",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 2,
+      "term": "EVEN",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.387Z",
+      "updatedAt": "2026-10-21T12:02:07.387Z"
+    },
+    {
+      "_id": "8a7c8f39784e15b7d53d909c",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 3,
+      "term": "ODD",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.388Z",
+      "updatedAt": "2026-10-21T12:02:07.388Z"
+    },
+    {
+      "_id": "e359642e95e9005620f39f23",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 4,
+      "term": "EVEN",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.389Z",
+      "updatedAt": "2026-10-21T12:02:07.389Z"
+    },
+    {
+      "_id": "64f9sem51111111111111111",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 5,
+      "term": "ODD",
+      "isActive": true,
+      "createdAt": "2026-10-21T12:02:07.389Z",
+      "updatedAt": "2026-10-21T12:02:07.389Z"
+    },
+    {
+      "_id": "48f8f19d388e7c2692faf56a",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 6,
+      "term": "EVEN",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.390Z",
+      "updatedAt": "2026-10-21T12:02:07.390Z"
+    },
+    {
+      "_id": "77f7b3c64f0667d3055b043b",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 7,
+      "term": "ODD",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.391Z",
+      "updatedAt": "2026-10-21T12:02:07.391Z"
+    },
+    {
+      "_id": "19f8a5bca12839e8c5a94825",
+      "tenantId": "64f9a0011111111111111111",
+      "academicYearId": "64f9ay011111111111111111",
+      "number": 8,
+      "term": "EVEN",
+      "isActive": false,
+      "createdAt": "2026-10-21T12:02:07.391Z",
+      "updatedAt": "2026-10-21T12:02:07.391Z"
+    }
+  ],
+  "divisions": [
+    {
+      "_id": "34aa21fd2cff6f86e3ebdc55",
+      "tenantId": "64f9a0011111111111111111",
+      "departmentId": "64f9dc011111111111111111",
+      "semesterId": "64f9sem51111111111111111",
+      "name": "Third Year Div A",
+      "classTeacher": "Prof. Priya Mehta",
+      "roomNumber": "LH-302",
+      "createdAt": "2026-10-21T12:02:07.394Z",
+      "updatedAt": "2026-10-21T12:02:07.394Z"
+    }
+  ],
+  "audit_logs": []
+}

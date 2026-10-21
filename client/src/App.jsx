@@ -7,14 +7,17 @@ import DigitalIdCardModal from './components/DigitalIdCardModal';
 
 // Pages
 import DashboardPage from './pages/DashboardPage';
+import AdmissionsPage from './pages/AdmissionsPage';
 import StudentsPage from './pages/StudentsPage';
 import FacultyPage from './pages/FacultyPage';
 import AttendancePage from './pages/AttendancePage';
 import AcademicsPage from './pages/AcademicsPage';
 import ExaminationPage from './pages/ExaminationPage';
+import AssignmentsPage from './pages/AssignmentsPage';
 import FinancePage from './pages/FinancePage';
 import LibraryPage from './pages/LibraryPage';
 import PlacementPage from './pages/PlacementPage';
+import CampusOperationsPage from './pages/CampusOperationsPage';
 import ServiceDeskPage from './pages/ServiceDeskPage';
 import SupportSystemPage from './pages/SupportSystemPage';
 import NaacPage from './pages/NaacPage';
@@ -219,6 +222,10 @@ export default function App() {
             />
           )}
 
+          {currentTab === 'admissions' && (
+            <AdmissionsPage user={user} />
+          )}
+
           {currentTab === 'students' && (
             <StudentsPage 
               user={user} 
@@ -242,6 +249,10 @@ export default function App() {
             <ExaminationPage user={user} />
           )}
 
+          {currentTab === 'assignments' && (
+            <AssignmentsPage user={user} />
+          )}
+
           {currentTab === 'finance' && (
             <FinancePage user={user} />
           )}
@@ -252,6 +263,10 @@ export default function App() {
 
           {currentTab === 'placement' && (
             <PlacementPage user={user} />
+          )}
+
+          {currentTab === 'campus' && (
+            <CampusOperationsPage user={user} />
           )}
 
           {currentTab === 'service-desk' && (

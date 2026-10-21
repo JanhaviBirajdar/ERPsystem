@@ -192,9 +192,10 @@ router.get('/marksheet/:studentId', authenticate, (req, res) => {
 
 // POST /api/examination/schedules - Schedule an Examination Paper
 router.post('/schedules', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
-  const { examination_id, subject_id, exam_date, start_time, end_time, room_allocation, max_marks = 100, passing_marks = 40, invigilator_faculty_id } = req.body;
+  const room_allocation = req.body.room_allocation || req.body.room_or_hall;
+  const { examination_id, subject_id, exam_date, start_time, end_time, max_marks = 100, passing_marks = 40, invigilator_faculty_id } = req.body;
   if (!examination_id || !subject_id || !exam_date || !start_time || !end_time || !room_allocation) {
-    return res.status(400).json({ error: 'examination_id, subject_id, exam_date, start_time, end_time, room_allocation are required' });
+    return res.status(400).json({ error: 'examination_id, subject_id, exam_date, start_time, end_time, and room_allocation are required' });
   }
 
   const id = `sched-${Date.now()}`;

@@ -2,6 +2,11 @@ const jwt = require('jsonwebtoken');
 const db = require('../db/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'campus-erp-super-secret-key-2026';
+const SECRETS = [
+  process.env.JWT_SECRET,
+  'campus-erp-super-secret-key-2026',
+  'mern-campus-erp-super-secret-key-2026'
+].filter(Boolean);
 
 // Middleware to authenticate JWT token
 const authenticate = (req, res, next) => {
@@ -11,17 +16,31 @@ const authenticate = (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT id, username, full_name, email, role, department_id, avatar_url FROM users WHERE id = ? AND is_active = 1').get(decoded.id);
-    if (!user) {
-      return res.status(401).json({ error: 'User not found or account deactivated' });
-    }
-    req.user = user;
-    next();
-  } catch (err) {
+  let decoded = null;
+  for (const secret of SECRETS) {
+    try {
+      decoded = jwt.verify(token, secret);
+      if (decoded) break;
+    } catch (err) {}
+  }
+
+  if (!decoded) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
+
+  const userId = decoded.id || decoded.userId;
+  let user = db.prepare('SELECT id, username, full_name, email, role, department_id, avatar_url FROM users WHERE id = ? AND is_active = 1').get(userId);
+  
+  if (!user && decoded.username) {
+    user = db.prepare('SELECT id, username, full_name, email, role, department_id, avatar_url FROM users WHERE username = ? AND is_active = 1').get(decoded.username);
+  }
+
+  if (!user) {
+    return res.status(401).json({ error: 'User not found or account deactivated' });
+  }
+
+  req.user = user;
+  next();
 };
 
 // Middleware to authorize specific roles

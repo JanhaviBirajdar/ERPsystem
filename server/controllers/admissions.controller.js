@@ -228,10 +228,10 @@ exports.enrollApplicant = (req, res) => {
 
     const dept = db.prepare('SELECT code FROM departments WHERE id = ?').get(app.department_id);
     const currentYear = new Date().getFullYear();
-    const count = db.prepare('SELECT COUNT(*) as c FROM students WHERE department_id = ?').get(app.department_id).c + 1;
+    const totalStudents = db.prepare('SELECT COUNT(*) as c FROM students').get().c + 1;
 
-    const prn = `${currentYear}${dept ? dept.code : 'ENG'}${String(count).padStart(4, '0')}`;
-    const roll_no = `42${String(count).padStart(2, '0')}`;
+    const prn = `${currentYear}${dept ? dept.code : 'ENG'}${String(totalStudents).padStart(4, '0')}`;
+    const roll_no = `42${String(totalStudents).padStart(2, '0')}`;
     const studentId = `stud-${Date.now()}`;
     const userId = `usr-${studentId}`;
     const username = `stud_${prn.toLowerCase()}`;
@@ -271,12 +271,16 @@ exports.enrollApplicant = (req, res) => {
       `).get(app.department_id, catId);
       const totalAmount = feeStruct ? feeStruct.total_annual_fee : 138000;
       const invoiceId = `inv-${Date.now()}`;
-      const invNumber = `INV-${currentYear}-${String(count).padStart(4, '0')}`;
+      const invCount = db.prepare('SELECT COUNT(*) as c FROM student_invoices').get().c + 1;
+      const invNumber = `INV-${currentYear}-${Date.now().toString().slice(-4)}-${String(invCount).padStart(4, '0')}`;
+
+      const ay = db.prepare('SELECT id FROM academic_years ORDER BY start_date DESC LIMIT 1').get();
+      const ayId = ay ? ay.id : 'ay-2026-27';
 
       db.prepare(`
         INSERT INTO student_invoices (id, invoice_number, student_id, academic_year_id, total_amount, balance_amount, status, due_date)
-        VALUES (?, ?, ?, 'ay-2025-26', ?, ?, 'PENDING', date('now', '+30 days'))
-      `).run(invoiceId, invNumber, studentId, totalAmount, totalAmount);
+        VALUES (?, ?, ?, ?, ?, ?, 'PENDING', date('now', '+30 days'))
+      `).run(invoiceId, invNumber, studentId, ayId, totalAmount, totalAmount);
 
       // 4. Update Application with Enrolled reference
       db.prepare(`

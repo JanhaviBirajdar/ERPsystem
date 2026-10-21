@@ -8,16 +8,40 @@ export default function AcademicsPage({ user }) {
   const [timetable, setTimetable] = useState([]);
   const [selectedDivision, setSelectedDivision] = useState('div-comp-5a');
   const [loading, setLoading] = useState(true);
+  const [facultyList, setFacultyList] = useState([]);
 
   // Smart Timetable Generator State
   const [showGenModal, setShowGenModal] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [genResult, setGenResult] = useState(null);
 
+  // Manual Slot Scheduling & Conflict Detection State
+  const [showSlotModal, setShowSlotModal] = useState(false);
+  const [conflictCheck, setConflictCheck] = useState(null);
+  const [slotForm, setSlotForm] = useState({
+    division_id: 'div-comp-5a',
+    day_of_week: 'Monday',
+    time_slot: '09:00 - 10:00',
+    subject_id: 'sub-cs501',
+    faculty_id: 'fac-101',
+    room_or_lab: 'Lecture Hall 302'
+  });
+
   useEffect(() => {
     loadSubjects();
     loadTimetable();
+    loadFaculty();
   }, [selectedDivision]);
+
+  const loadFaculty = async () => {
+    try {
+      const res = await api.faculty.getAll();
+      setFacultyList(res.faculty || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
 
   const loadSubjects = async () => {
     try {
@@ -89,14 +113,22 @@ export default function AcademicsPage({ user }) {
         </div>
 
         {['SUPER_ADMIN', 'PRINCIPAL', 'HOD'].includes(user?.role) && (
-          <button 
-            className="btn btn-primary"
-            onClick={() => { setShowGenModal(true); setGenResult(null); }}
-            style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)', border: 'none' }}
-          >
-            <Sparkles size={16} />
-            <span>Smart Timetable Generator</span>
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => { setShowSlotModal(true); setConflictCheck(null); }}
+            >
+              <Calendar size={15} /> Schedule Slot
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => { setShowGenModal(true); setGenResult(null); }}
+              style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)', border: 'none' }}
+            >
+              <Sparkles size={16} />
+              <span>Smart Timetable Generator</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -114,7 +146,14 @@ export default function AcademicsPage({ user }) {
         >
           Curriculum & Syllabus Completion Tracker
         </button>
+        <button 
+          className={`tab-btn ${activeTab === 'rooms' ? 'active' : ''}`}
+          onClick={() => setActiveTab('rooms')}
+        >
+          Classroom & Lab Allocations
+        </button>
       </div>
+
 
       {/* =========================================================================
           TAB 1: TIMETABLE GRID
@@ -251,8 +290,188 @@ export default function AcademicsPage({ user }) {
       )}
 
       {/* =========================================================================
-          SMART TIMETABLE GENERATOR MODAL
+          TAB 3: CLASSROOM & LAB ALLOCATIONS
           ========================================================================= */}
+      {activeTab === 'rooms' && (
+        <div className="card">
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px' }}>
+            Campus Academic Infrastructure: Classrooms & Computer Labs
+          </h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ background: 'var(--table-header-bg)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 14px' }}>Facility / Room</th>
+                  <th style={{ padding: '10px 14px' }}>Type</th>
+                  <th style={{ padding: '10px 14px' }}>Capacity</th>
+                  <th style={{ padding: '10px 14px' }}>Assigned Division</th>
+                  <th style={{ padding: '10px 14px' }}>Smart Equipment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { name: 'Lecture Hall 302', type: 'Lecture Classroom', cap: 75, div: 'TE COMP Div A', equip: '4K Interactive Projector, Mic System' },
+                  { name: 'Lecture Hall 304', type: 'Lecture Classroom', cap: 75, div: 'TE COMP Div B', equip: 'Laser Projector, Smart Board' },
+                  { name: 'Lecture Hall 201', type: 'Lecture Classroom', cap: 70, div: 'TE AIDS Div A', equip: 'Digital Smart Podium' },
+                  { name: 'Lecture Hall 105', type: 'Lecture Classroom', cap: 70, div: 'TE ENTC Div A', equip: 'AV Surround Sound' },
+                  { name: 'Advanced AI & Cloud Lab', type: 'Computer Laboratory', cap: 40, div: 'COMP / AIDS Batches', equip: '40x Core i7 32GB RAM Terminals' },
+                  { name: 'Database & Networking Lab', type: 'Computer Laboratory', cap: 40, div: 'COMP / IT Batches', equip: 'Gigabit Switch, Server Rack' },
+                  { name: 'Embedded IoT Systems Lab', type: 'Electronics Laboratory', cap: 35, div: 'ENTC Batches', equip: 'Tektronix Oscilloscopes, FPGA Kits' }
+                ].map((r, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--primary)' }}>{r.name}</td>
+                    <td style={{ padding: '12px 14px' }}><span className="badge badge-secondary">{r.type}</span></td>
+                    <td style={{ padding: '12px 14px' }}>{r.cap} Seats</td>
+                    <td style={{ padding: '12px 14px', fontWeight: 600 }}>{r.div}</td>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{r.equip}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MANUAL SLOT SCHEDULING & CONFLICT DETECTION MODAL
+          ========================================================================= */}
+      {showSlotModal && (
+        <div className="modal-overlay" onClick={() => setShowSlotModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <h3 className="modal-title">Schedule Lecture / Lab Slot</h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Select schedule coordinates. System will automatically check for faculty and room conflicts.
+                  </p>
+                </div>
+              </div>
+              <button className="icon-btn" onClick={() => setShowSlotModal(false)}><X size={18} /></button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Day of Week</label>
+                  <select
+                    className="form-input"
+                    value={slotForm.day_of_week}
+                    onChange={(e) => setSlotForm({ ...slotForm, day_of_week: e.target.value })}
+                  >
+                    {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Time Slot</label>
+                  <select
+                    className="form-input"
+                    value={slotForm.time_slot}
+                    onChange={(e) => setSlotForm({ ...slotForm, time_slot: e.target.value })}
+                  >
+                    {SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Course Subject</label>
+                <select
+                  className="form-input"
+                  value={slotForm.subject_id}
+                  onChange={(e) => setSlotForm({ ...slotForm, subject_id: e.target.value })}
+                >
+                  <option value="sub-cs501">CS501 - Database Management Systems</option>
+                  <option value="sub-cs502">CS502 - Advanced Computer Networks</option>
+                  <option value="sub-cs503">CS503 - Theory of Computation</option>
+                  <option value="sub-it501">IT501 - Cloud Computing & DevOps</option>
+                  <option value="sub-ec501">EC501 - Microcontrollers & Embedded Systems</option>
+                </select>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Faculty Member</label>
+                  <select
+                    className="form-input"
+                    value={slotForm.faculty_id}
+                    onChange={(e) => setSlotForm({ ...slotForm, faculty_id: e.target.value })}
+                  >
+                    {facultyList.map(f => (
+                      <option key={f.id} value={f.id}>{f.full_name} ({f.emp_code})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Classroom / Lab</label>
+                  <select
+                    className="form-input"
+                    value={slotForm.room_or_lab}
+                    onChange={(e) => setSlotForm({ ...slotForm, room_or_lab: e.target.value })}
+                  >
+                    <option value="Lecture Hall 302">Lecture Hall 302</option>
+                    <option value="Lecture Hall 304">Lecture Hall 304</option>
+                    <option value="Advanced AI & Cloud Lab">Advanced AI & Cloud Lab</option>
+                    <option value="Database & Networking Lab">Database & Networking Lab</option>
+                    <option value="Embedded IoT Systems Lab">Embedded IoT Systems Lab</option>
+                  </select>
+                </div>
+              </div>
+
+              {conflictCheck && conflictCheck.hasConflict && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '12px', marginTop: '12px', color: '#b91c1c', fontSize: '0.82rem' }}>
+                  <AlertTriangle size={16} style={{ display: 'inline', marginRight: '6px' }} />
+                  {conflictCheck.facultyConflict ? `Faculty Conflict: Assigned to ${conflictCheck.facultyConflict.division_name}` : `Room Conflict: Occupied by ${conflictCheck.roomConflict.division_name}`}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowSlotModal(false)}>Cancel</button>
+              <button
+                className="btn btn-secondary"
+                onClick={async () => {
+                  const res = await api.academics.checkConflicts({
+                    faculty_id: slotForm.faculty_id,
+                    room_or_lab: slotForm.room_or_lab,
+                    day_of_week: slotForm.day_of_week,
+                    time_slot: slotForm.time_slot,
+                    division_id: selectedDivision
+                  });
+                  setConflictCheck(res);
+                  if (!res.hasConflict) alert('No conflicts detected! Faculty and room are available.');
+                }}
+              >
+                Pre-Flight Conflict Check
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={async () => {
+                  try {
+                    await api.academics.scheduleSlot({
+                      ...slotForm,
+                      division_id: selectedDivision
+                    });
+                    alert('Lecture slot scheduled successfully!');
+                    setShowSlotModal(false);
+                    loadTimetable();
+                  } catch (err) {
+                    alert(`Scheduling conflict: ${err.message}`);
+                  }
+                }}
+              >
+                <Check size={16} /> Save Lecture Slot
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showGenModal && (
         <div className="modal-overlay" onClick={() => setShowGenModal(false)}>
           <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>

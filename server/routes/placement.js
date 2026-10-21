@@ -167,4 +167,92 @@ router.get('/stats', authenticate, (req, res) => {
   });
 });
 
+// POST /api/placement/interviews - Schedule interview round
+router.post('/interviews', authenticate, authorize(['SUPER_ADMIN', 'PLACEMENT_OFFICER']), (req, res) => {
+  const scheduled_time = req.body.scheduled_time || req.body.scheduled_at;
+  let { application_id, round_name, venue_or_link } = req.body;
+  if (!application_id || !round_name || !scheduled_time || !venue_or_link) {
+    return res.status(400).json({ error: 'application_id, round_name, scheduled_time, venue_or_link are required' });
+  }
+
+  if (round_name === 'TECHNICAL_1') round_name = 'TECHNICAL_ROUND_1';
+  if (round_name === 'TECHNICAL_2') round_name = 'TECHNICAL_ROUND_2';
+  if (round_name === 'HR') round_name = 'HR_ROUND';
+
+  const app = db.prepare('SELECT * FROM placement_applications WHERE id = ?').get(application_id);
+  if (!app) return res.status(404).json({ error: 'Placement application not found' });
+
+  const id = `intv-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO placement_interviews (id, application_id, drive_id, student_id, round_name, scheduled_time, venue_or_link, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'SCHEDULED')
+  `).run(id, application_id, app.drive_id, app.student_id, round_name, scheduled_time, venue_or_link);
+
+  res.status(201).json({ success: true, message: 'Interview scheduled successfully', id });
+});
+
+// GET /api/placement/interviews - View interview rounds
+router.get('/interviews', authenticate, (req, res) => {
+  const { drive_id, student_id } = req.query;
+  let query = `
+    SELECT pi.*, s.full_name as student_name, s.roll_no, s.prn, pd.company_name, pd.role_title
+    FROM placement_interviews pi
+    JOIN students s ON pi.student_id = s.id
+    JOIN placement_drives pd ON pi.drive_id = pd.id
+    WHERE 1=1
+  `;
+  const params = [];
+  if (req.user.role === 'STUDENT') {
+    const s = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
+    if (s) {
+      query += ' AND pi.student_id = ?';
+      params.push(s.id);
+    }
+  } else if (student_id) {
+    query += ' AND pi.student_id = ?';
+    params.push(student_id);
+  }
+  if (drive_id) {
+    query += ' AND pi.drive_id = ?';
+    params.push(drive_id);
+  }
+
+  query += ' ORDER BY pi.scheduled_time ASC';
+  const interviews = db.prepare(query).all(...params);
+  res.json({ interviews });
+});
+
+// PUT /api/placement/interviews/:id/outcome - Record interview result and offer
+router.put('/interviews/:id/outcome', authenticate, authorize(['SUPER_ADMIN', 'PLACEMENT_OFFICER']), (req, res) => {
+  let status = req.body.status || req.body.outcome;
+  if (status === 'SELECTED') status = 'CLEARED';
+  const offered_ctc_lpa = req.body.offered_ctc_lpa || req.body.offer_ctc;
+  const feedback = req.body.feedback;
+
+  if (!['CLEARED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ error: 'Status must be CLEARED or REJECTED' });
+  }
+
+  const intv = db.prepare('SELECT * FROM placement_interviews WHERE id = ?').get(req.params.id);
+  if (!intv) return res.status(404).json({ error: 'Interview record not found' });
+
+  const tx = db.transaction(() => {
+    db.prepare(`
+      UPDATE placement_interviews
+      SET status = ?, feedback = ?, offered_ctc_lpa = ?
+      WHERE id = ?
+    `).run(status, feedback || null, offered_ctc_lpa ? Number(offered_ctc_lpa) : null, req.params.id);
+
+    // If final HR round cleared or offer extended, update application status to 'OFFERED'
+    if (status === 'CLEARED' && (intv.round_name === 'HR_ROUND' || offered_ctc_lpa)) {
+      db.prepare("UPDATE placement_applications SET status = 'OFFERED' WHERE id = ?").run(intv.application_id);
+    }
+  });
+
+  tx();
+
+  res.json({ success: true, message: `Interview outcome recorded (${status})` });
+});
+
 module.exports = router;
+

@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, GraduationCap, Calendar, 
   CheckSquare, Award, CreditCard, BookOpen, Briefcase, 
   LifeBuoy, AlertTriangle, ShieldCheck, Settings, 
-  ChevronLeft, ChevronRight, LogOut, Sparkles
+  ChevronLeft, ChevronRight, LogOut, Sparkles, UserPlus, FileText, Building2
 } from 'lucide-react';
 
 export default function Sidebar({ currentTab, setTab, user, collapsed, setCollapsed, onOpenCopilot, onLogout }) {
@@ -12,14 +12,17 @@ export default function Sidebar({ currentTab, setTab, user, collapsed, setCollap
   // Navigation items scoped by institutional role
   const navItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT', 'ACCOUNTANT', 'LIBRARIAN', 'PLACEMENT_OFFICER'] },
+    { id: 'admissions', label: 'Admissions & Intake', icon: UserPlus, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT', 'ADMISSION_OFFICER'] },
     { id: 'students', label: 'Student Info (SIS)', icon: Users, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'ACCOUNTANT'] },
     { id: 'faculty', label: 'Faculty & Workload', icon: GraduationCap, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY'] },
-    { id: 'attendance', label: 'Attendance & QR', icon: CheckSquare, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'] },
     { id: 'academics', label: 'Curriculum & Timetable', icon: Calendar, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'] },
+    { id: 'attendance', label: 'Attendance & QR', icon: CheckSquare, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'] },
     { id: 'examination', label: 'Examinations & Marks', icon: Award, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'] },
-    { id: 'finance', label: 'Fees & Accounts', icon: CreditCard, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'ACCOUNTANT', 'STUDENT'] },
+    { id: 'assignments', label: 'Assignments & Notes', icon: FileText, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'] },
     { id: 'library', label: 'Library Circulation', icon: BookOpen, roles: ['SUPER_ADMIN', 'LIBRARIAN', 'STUDENT', 'FACULTY'] },
     { id: 'placement', label: 'Training & Placements', icon: Briefcase, roles: ['SUPER_ADMIN', 'PLACEMENT_OFFICER', 'STUDENT', 'HOD'] },
+    { id: 'campus', label: 'Campus Operations', icon: Building2, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'] },
+    { id: 'finance', label: 'Fees & Accounts', icon: CreditCard, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'ACCOUNTANT', 'STUDENT'] },
     { id: 'service-desk', label: 'Digital Service Desk', icon: LifeBuoy, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'STUDENT', 'ACCOUNTANT'] },
     { id: 'support', label: 'Early Academic Support', icon: AlertTriangle, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT'], badge: 'AI' },
     { id: 'naac', label: 'Accreditation (NAAC/NBA)', icon: ShieldCheck, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD'] },

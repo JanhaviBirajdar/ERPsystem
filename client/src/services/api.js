@@ -54,6 +54,37 @@ export const api = {
     }).then(handleResponse)
   },
 
+  // Admission Management
+  admissions: {
+    getApplications: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/admissions/applications?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    createApplication: (data) => fetch(`${API_BASE}/admissions/applications`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    verifyDocuments: (id, data) => fetch(`${API_BASE}/admissions/applications/${id}/verify-documents`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    checkEligibility: (id) => fetch(`${API_BASE}/admissions/applications/${id}/check-eligibility`, {
+      method: 'PUT',
+      headers: getHeaders()
+    }).then(handleResponse),
+    approve: (id) => fetch(`${API_BASE}/admissions/applications/${id}/approve`, {
+      method: 'PUT',
+      headers: getHeaders()
+    }).then(handleResponse),
+    enroll: (id) => fetch(`${API_BASE}/admissions/applications/${id}/enroll`, {
+      method: 'POST',
+      headers: getHeaders()
+    }).then(handleResponse),
+    getReports: () => fetch(`${API_BASE}/admissions/reports`, { headers: getHeaders() }).then(handleResponse)
+  },
+
   // Student Information System (SIS)
   students: {
     getAll: (params = {}) => {
@@ -84,7 +115,28 @@ export const api = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data)
-    }).then(handleResponse)
+    }).then(handleResponse),
+    applyLeave: (data) => fetch(`${API_BASE}/faculty/leaves`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getLeaves: () => fetch(`${API_BASE}/faculty/leaves`, { headers: getHeaders() }).then(handleResponse),
+    updateLeaveStatus: (id, data) => fetch(`${API_BASE}/faculty/leaves/${id}/status`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    allocateSubject: (facId, data) => fetch(`${API_BASE}/faculty/${facId}/subject-allocations`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    removeSubjectAllocation: (allocId) => fetch(`${API_BASE}/faculty/subject-allocations/${allocId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    }).then(handleResponse),
+    getWorkloadOverview: () => fetch(`${API_BASE}/faculty/workload/overview`, { headers: getHeaders() }).then(handleResponse)
   },
 
   // Academics & Timetables
@@ -103,7 +155,20 @@ export const api = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data)
-    }).then(handleResponse)
+    }).then(handleResponse),
+    scheduleSlot: (data) => fetch(`${API_BASE}/academics/timetable/slot`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    deleteSlot: (id) => fetch(`${API_BASE}/academics/timetable/slot/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    }).then(handleResponse),
+    checkConflicts: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/academics/timetable/conflict-check?${q}`, { headers: getHeaders() }).then(handleResponse);
+    }
   },
 
   // Attendance Management
@@ -147,7 +212,64 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     }).then(handleResponse),
-    getMarksheet: (studentId) => fetch(`${API_BASE}/examination/marksheet/${studentId}`, { headers: getHeaders() }).then(handleResponse)
+    getMarksheet: (studentId) => fetch(`${API_BASE}/examination/marksheet/${studentId}`, { headers: getHeaders() }).then(handleResponse),
+    scheduleExam: (data) => fetch(`${API_BASE}/examination/schedules`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getSchedules: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/examination/schedules?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    publishResults: (examId) => fetch(`${API_BASE}/examination/exams/${examId}/publish`, {
+      method: 'PUT',
+      headers: getHeaders()
+    }).then(handleResponse),
+    submitRevaluation: (data) => fetch(`${API_BASE}/examination/revaluation`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getRevaluations: () => fetch(`${API_BASE}/examination/revaluation`, { headers: getHeaders() }).then(handleResponse),
+    reviewRevaluation: (id, data) => fetch(`${API_BASE}/examination/revaluation/${id}/review`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse)
+  },
+
+  // Assignments & Academic Study Resources
+  assignments: {
+    getAll: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/assignments?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    create: (data) => fetch(`${API_BASE}/assignments`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    submit: (id, data) => fetch(`${API_BASE}/assignments/${id}/submit`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getSubmissions: (id) => fetch(`${API_BASE}/assignments/${id}/submissions`, { headers: getHeaders() }).then(handleResponse),
+    grade: (submissionId, data) => fetch(`${API_BASE}/assignments/submissions/${submissionId}/grade`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getResources: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/assignments/resources?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    createResource: (data) => fetch(`${API_BASE}/assignments/resources`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse)
   },
 
   // Fees & Finance
@@ -190,8 +312,20 @@ export const api = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ loan_id: loanId })
+    }).then(handleResponse),
+    reserveBook: (data) => fetch(`${API_BASE}/library/reserve`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getReservations: () => fetch(`${API_BASE}/library/reservations`, { headers: getHeaders() }).then(handleResponse),
+    getOverdue: () => fetch(`${API_BASE}/library/overdue`, { headers: getHeaders() }).then(handleResponse),
+    sendOverdueReminders: () => fetch(`${API_BASE}/library/overdue/send-reminders`, {
+      method: 'POST',
+      headers: getHeaders()
     }).then(handleResponse)
   },
+
 
   // Training & Placement Cell
   placement: {
@@ -215,8 +349,91 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     }).then(handleResponse),
-    getStats: () => fetch(`${API_BASE}/placement/stats`, { headers: getHeaders() }).then(handleResponse)
+    getStats: () => fetch(`${API_BASE}/placement/stats`, { headers: getHeaders() }).then(handleResponse),
+    scheduleInterview: (data) => fetch(`${API_BASE}/placement/interviews`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getInterviews: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/placement/interviews?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    updateInterviewOutcome: (id, data) => fetch(`${API_BASE}/placement/interviews/${id}/outcome`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse)
   },
+
+  // Campus Operations: Hostel, Transport, Equipment, Maintenance
+  campus: {
+    hostel: {
+      getRooms: () => fetch(`${API_BASE}/campus/hostel/rooms`, { headers: getHeaders() }).then(handleResponse),
+      createRoom: (data) => fetch(`${API_BASE}/campus/hostel/rooms`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getAllocations: () => fetch(`${API_BASE}/campus/hostel/allocations`, { headers: getHeaders() }).then(handleResponse),
+      allocate: (data) => fetch(`${API_BASE}/campus/hostel/allocate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      vacate: (id) => fetch(`${API_BASE}/campus/hostel/vacate/${id}`, {
+        method: 'PUT',
+        headers: getHeaders()
+      }).then(handleResponse)
+    },
+    transport: {
+      getRoutes: () => fetch(`${API_BASE}/campus/transport/routes`, { headers: getHeaders() }).then(handleResponse),
+      createRoute: (data) => fetch(`${API_BASE}/campus/transport/routes`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getAllocations: () => fetch(`${API_BASE}/campus/transport/allocations`, { headers: getHeaders() }).then(handleResponse),
+      allocate: (data) => fetch(`${API_BASE}/campus/transport/allocate`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse)
+    },
+    equipment: {
+      getAll: (params = {}) => {
+        const q = new URLSearchParams(params).toString();
+        return fetch(`${API_BASE}/campus/equipment?${q}`, { headers: getHeaders() }).then(handleResponse);
+      },
+      create: (data) => fetch(`${API_BASE}/campus/equipment`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      updateCondition: (id, data) => fetch(`${API_BASE}/campus/equipment/${id}/condition`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse)
+    },
+    maintenance: {
+      getAll: (params = {}) => {
+        const q = new URLSearchParams(params).toString();
+        return fetch(`${API_BASE}/campus/maintenance?${q}`, { headers: getHeaders() }).then(handleResponse);
+      },
+      create: (data) => fetch(`${API_BASE}/campus/maintenance`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      updateStatus: (id, data) => fetch(`${API_BASE}/campus/maintenance/${id}/status`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse)
+    }
+  },
+
 
   // Service Desk & Bonafide Certificates
   serviceDesk: {

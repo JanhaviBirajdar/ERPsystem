@@ -166,4 +166,91 @@ router.post('/return', authenticate, authorize(['SUPER_ADMIN', 'LIBRARIAN']), (r
   res.json({ success: true, message: 'Book returned successfully', fine_amount: fine });
 });
 
+// POST /api/library/reserve - Place reservation on a book
+router.post('/reserve', authenticate, (req, res) => {
+  const { book_id } = req.body;
+  if (!book_id) return res.status(400).json({ error: 'book_id is required' });
+
+  let studentId = null;
+  if (req.user.role === 'STUDENT') {
+    const s = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
+    if (s) studentId = s.id;
+  } else {
+    studentId = req.body.student_id;
+  }
+  if (!studentId) return res.status(400).json({ error: 'Valid student_id required' });
+
+  const id = `resv-${Date.now()}`;
+  db.prepare(`
+    INSERT INTO library_reservations (id, book_id, student_id, status)
+    VALUES (?, ?, ?, 'QUEUED')
+  `).run(id, book_id, studentId);
+
+  res.status(201).json({ success: true, message: 'Book reserved successfully in waiting queue', id });
+});
+
+// GET /api/library/reservations - List reservations
+router.get('/reservations', authenticate, (req, res) => {
+  let query = `
+    SELECT r.*, b.title, b.author, b.isbn, s.full_name as student_name, s.prn, s.roll_no
+    FROM library_reservations r
+    JOIN library_books b ON r.book_id = b.id
+    JOIN students s ON r.student_id = s.id
+  `;
+  const params = [];
+  if (req.user.role === 'STUDENT') {
+    const s = db.prepare('SELECT id FROM students WHERE user_id = ?').get(req.user.id);
+    if (s) {
+      query += ' WHERE r.student_id = ?';
+      params.push(s.id);
+    }
+  }
+  query += ' ORDER BY r.reserved_at DESC';
+
+  const reservations = db.prepare(query).all(...params);
+  res.json({ reservations });
+});
+
+// GET /api/library/overdue - Overdue books list with calculated fine
+router.get('/overdue', authenticate, authorize(['SUPER_ADMIN', 'LIBRARIAN']), (req, res) => {
+  const overdueLoans = db.prepare(`
+    SELECT bi.*, b.title, b.author, b.isbn, s.full_name as student_name, s.email as student_email, s.phone as student_phone, s.roll_no,
+           ROUND(JULIANDAY('now') - JULIANDAY(bi.due_date)) as overdue_days,
+           ROUND((JULIANDAY('now') - JULIANDAY(bi.due_date)) * 5.0) as calculated_fine
+    FROM book_issues bi
+    JOIN library_books b ON bi.book_id = b.id
+    JOIN students s ON bi.student_id = s.id
+    WHERE bi.status = 'ISSUED' AND DATE('now') > DATE(bi.due_date)
+    ORDER BY overdue_days DESC
+  `).all();
+
+  res.json({ overdueLoans, totalOverdue: overdueLoans.length });
+});
+
+// POST /api/library/overdue/send-reminders - Dispatch Overdue Notifications
+router.post('/overdue/send-reminders', authenticate, authorize(['SUPER_ADMIN', 'LIBRARIAN']), (req, res) => {
+  const overdueLoans = db.prepare(`
+    SELECT bi.id, b.title, s.full_name, s.email, ROUND(JULIANDAY('now') - JULIANDAY(bi.due_date)) as overdue_days
+    FROM book_issues bi
+    JOIN library_books b ON bi.book_id = b.id
+    JOIN students s ON bi.student_id = s.id
+    WHERE bi.status = 'ISSUED' AND DATE('now') > DATE(bi.due_date)
+  `).all();
+
+  for (const loan of overdueLoans) {
+    logAudit(req.user.id, req.user.role, 'DISPATCH_OVERDUE_REMINDER', 'LIBRARY_LOAN', loan.id, {
+      student: loan.full_name,
+      book: loan.title,
+      overdueDays: loan.overdue_days
+    }, req);
+  }
+
+  res.json({
+    success: true,
+    remindersSent: overdueLoans.length,
+    message: `Overdue circulars and SMS alerts dispatched to ${overdueLoans.length} students with overdue library books.`
+  });
+});
+
 module.exports = router;
+

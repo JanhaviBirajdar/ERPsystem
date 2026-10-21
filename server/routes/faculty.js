@@ -154,16 +154,19 @@ router.put('/:id/department', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL
 
 // POST /api/faculty/:id/subject-allocations - Allocate Subject
 router.post('/:id/subject-allocations', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
-  const { subject_id, division_id, academic_year_id = 'ay-2025-26' } = req.body;
+  const { subject_id, division_id } = req.body;
   if (!subject_id || !division_id) {
     return res.status(400).json({ error: 'subject_id and division_id are required' });
   }
+
+  const ay = db.prepare('SELECT id FROM academic_years ORDER BY start_date DESC LIMIT 1').get();
+  const ayId = req.body.academic_year_id || (ay ? ay.id : 'ay-2026-27');
 
   const allocId = `alloc-${Date.now()}`;
   db.prepare(`
     INSERT INTO subject_allocations (id, subject_id, faculty_id, division_id, academic_year_id)
     VALUES (?, ?, ?, ?, ?)
-  `).run(allocId, subject_id, req.params.id, division_id, academic_year_id);
+  `).run(allocId, subject_id, req.params.id, division_id, ayId);
 
   res.status(201).json({ success: true, message: 'Subject allocated to faculty successfully', id: allocId });
 });

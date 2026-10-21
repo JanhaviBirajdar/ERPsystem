@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const admissionsCtrl = require('../controllers/admissions.controller');
-const { authenticate } = require('../middleware/authenticate');
-const { authorize } = require('../middleware/authorize');
+const { authenticate, authorize } = require('../middleware/auth');
 
 // Public or Student/Parent endpoint to submit application
 router.post('/applications', admissionsCtrl.createApplication);
