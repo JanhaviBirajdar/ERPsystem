@@ -55,7 +55,10 @@ export default function AICopilotModal({ isOpen, onClose, user, onNavigate }) {
           sender: 'ai',
           text: res.response,
           sources: res.sources || [],
-          suggestedActions: res.suggestedActions || []
+          suggestedActions: res.suggestedActions || [],
+          requiresConfirmation: res.requiresConfirmation,
+          pendingAction: res.pendingAction,
+          securityViolation: res.securityViolation
         }
       ]);
     } catch (err) {
@@ -64,6 +67,36 @@ export default function AICopilotModal({ isOpen, onClose, user, onNavigate }) {
         {
           sender: 'ai',
           text: `⚠️ **Error retrieving information:** ${err.message}. Please try a different query or navigate using the side menu.`,
+          sources: [],
+          suggestedActions: []
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmAction = async (actionId, confirmed) => {
+    try {
+      setLoading(true);
+      const res = await api.ai.confirmAction(actionId, confirmed);
+      setMessages(prev => [
+        ...prev,
+        {
+          sender: 'ai',
+          text: confirmed
+            ? `✅ **Action Confirmed and Executed:** ${res.message || 'Operation successfully completed.'}`
+            : `❌ **Action Cancelled:** The pending operation has been cancelled.`,
+          sources: [{ type: 'Confirmation Ledger', name: actionId }],
+          suggestedActions: []
+        }
+      ]);
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        {
+          sender: 'ai',
+          text: `⚠️ **Action Execution Failed:** ${err.message}`,
           sources: [],
           suggestedActions: []
         }
@@ -131,6 +164,41 @@ export default function AICopilotModal({ isOpen, onClose, user, onNavigate }) {
                     __html: formatMarkdown(msg.text) 
                   }} 
                 />
+
+                {/* Consequential Action Confirmation Card */}
+                {msg.requiresConfirmation && msg.pendingAction && (
+                  <div style={{
+                    marginTop: '14px',
+                    padding: '12px 14px',
+                    background: '#fffbeb',
+                    border: '1px solid #fcd34d',
+                    borderRadius: '10px'
+                  }}>
+                    <div style={{ fontWeight: 600, color: '#92400e', fontSize: '0.82rem', marginBottom: '4px' }}>
+                      ⚡ Consequential Action Requires Human Confirmation
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#78350f', marginBottom: '10px' }}>
+                      {msg.pendingAction.summary}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: '0.78rem', padding: '4px 12px' }}
+                        onClick={() => handleConfirmAction(msg.pendingAction.actionId, true)}
+                      >
+                        <CheckCircle2 size={13} style={{ marginRight: '4px' }} />
+                        Confirm & Execute Action
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: '0.78rem', padding: '4px 12px' }}
+                        onClick={() => handleConfirmAction(msg.pendingAction.actionId, false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Sources Citation */}
                 {msg.sources && msg.sources.length > 0 && (

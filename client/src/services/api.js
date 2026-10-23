@@ -460,6 +460,21 @@ export const api = {
       const q = new URLSearchParams(params).toString();
       return fetch(`${API_BASE}/support/alerts?${q}`, { headers: getHeaders() }).then(handleResponse);
     },
+    getThresholds: () => fetch(`${API_BASE}/support/thresholds`, { headers: getHeaders() }).then(handleResponse),
+    updateThresholds: (data) => fetch(`${API_BASE}/support/thresholds`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    recordIntervention: (data) => fetch(`${API_BASE}/support/interventions`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getInterventions: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/support/interventions?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
     runScan: () => fetch(`${API_BASE}/support/scan`, {
       method: 'POST',
       headers: getHeaders()
@@ -488,6 +503,18 @@ export const api = {
   // Analytics & Notices
   analytics: {
     getDashboard: () => fetch(`${API_BASE}/analytics/dashboard`, { headers: getHeaders() }).then(handleResponse),
+    getManagementOverview: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/analytics/management-overview?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    getDrilldown: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/analytics/drilldown?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    exportCsv: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/analytics/export?${q}`, { headers: getHeaders() });
+    },
     getAuditLogs: (limit = 30) => fetch(`${API_BASE}/analytics/audit-logs?limit=${limit}`, { headers: getHeaders() }).then(handleResponse),
     getNotices: () => fetch(`${API_BASE}/analytics/notices`, { headers: getHeaders() }).then(handleResponse),
     publishNotice: (data) => fetch(`${API_BASE}/analytics/notices`, {
@@ -508,7 +535,13 @@ export const api = {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ prompt })
-    }).then(handleResponse)
+    }).then(handleResponse),
+    confirmAction: (actionId, confirmed = true) => fetch(`${API_BASE}/ai/confirm-action`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ actionId, confirmed })
+    }).then(handleResponse),
+    getTelemetry: () => fetch(`${API_BASE}/ai/telemetry`, { headers: getHeaders() }).then(handleResponse)
   },
 
   // Phase 2 Modular MERN Multi-Tenant v1 Endpoints

@@ -9,7 +9,7 @@
     "client": "npm --prefix client dev",
     "seed": "npm --prefix server run seed",
     "build": "npm --prefix client run build",
-    "test": "node server/tests/api.test.js && node server/tests/workflow.test.js"
+    "test": "node server/tests/run_all.js"
   },
   "keywords": [
     "college-erp",

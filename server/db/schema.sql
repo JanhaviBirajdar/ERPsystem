@@ -601,3 +601,32 @@ CREATE INDEX IF NOT EXISTS idx_hostel_student ON hostel_allocations(student_id);
 CREATE INDEX IF NOT EXISTS idx_transport_student ON transport_allocations(student_id);
 CREATE INDEX IF NOT EXISTS idx_maint_status ON maintenance_requests(status);
 
+-- 34. Academic Support Alert Configurable Thresholds
+CREATE TABLE IF NOT EXISTS support_threshold_configs (
+    id TEXT PRIMARY KEY,
+    attendance_min_pct REAL DEFAULT 75.0,
+    attendance_critical_pct REAL DEFAULT 65.0,
+    marks_min_pct REAL DEFAULT 40.0,
+    max_missed_assignments INTEGER DEFAULT 2,
+    cgpa_at_risk REAL DEFAULT 6.5,
+    updated_by TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 35. Faculty Academic Interventions & Support Records
+CREATE TABLE IF NOT EXISTS support_interventions (
+    id TEXT PRIMARY KEY,
+    alert_id TEXT REFERENCES early_warning_alerts(id),
+    student_id TEXT NOT NULL REFERENCES students(id),
+    faculty_id TEXT REFERENCES faculty(id),
+    faculty_name TEXT,
+    intervention_type TEXT NOT NULL CHECK(intervention_type IN ('REMEDIAL_CLASS', 'MENTORING_SESSION', 'STUDY_GROUP', 'ACADEMIC_ADVISING', 'COUNSELING', 'PEER_TUTORING')),
+    action_taken TEXT NOT NULL,
+    student_feedback TEXT,
+    follow_up_date DATE,
+    disciplinary_action_prohibited INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_support_interventions_student ON support_interventions(student_id);
+CREATE INDEX IF NOT EXISTS idx_support_interventions_alert ON support_interventions(alert_id);
+

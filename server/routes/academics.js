@@ -49,6 +49,34 @@ router.put('/subjects/:id/syllabus', authenticate, authorize(['SUPER_ADMIN', 'HO
   res.json({ success: true, message: 'Syllabus progress updated' });
 });
 
+// GET /api/academics/timetable/conflict-check - Conflict evaluation pre-flight
+router.get('/timetable/conflict-check', authenticate, (req, res) => {
+  const { faculty_id, room_or_lab, day_of_week, time_slot, division_id } = req.query;
+
+  const facultyBusy = faculty_id ? db.prepare(`
+    SELECT tt.*, div.name as division_name, sub.name as subject_name, f.full_name as faculty_name
+    FROM timetables tt
+    JOIN divisions div ON tt.division_id = div.id
+    JOIN courses_subjects sub ON tt.subject_id = sub.id
+    JOIN faculty f ON tt.faculty_id = f.id
+    WHERE tt.faculty_id = ? AND tt.day_of_week = ? AND tt.time_slot = ?
+  `).get(faculty_id, day_of_week, time_slot) : null;
+
+  const roomBusy = room_or_lab ? db.prepare(`
+    SELECT tt.*, div.name as division_name, sub.name as subject_name
+    FROM timetables tt
+    JOIN divisions div ON tt.division_id = div.id
+    JOIN courses_subjects sub ON tt.subject_id = sub.id
+    WHERE tt.room_or_lab = ? AND tt.day_of_week = ? AND tt.time_slot = ?
+  `).get(room_or_lab, day_of_week, time_slot) : null;
+
+  res.json({
+    hasConflict: !!facultyBusy || !!roomBusy,
+    facultyConflict: facultyBusy || null,
+    roomConflict: roomBusy || null
+  });
+});
+
 // GET /api/academics/timetable/:divisionId - Division weekly timetable
 router.get('/timetable/:divisionId', authenticate, (req, res) => {
   const timetable = db.prepare(`
@@ -73,7 +101,13 @@ router.get('/timetable/:divisionId', authenticate, (req, res) => {
 
 // POST /api/academics/generate-timetable - Constraint-based Smart Timetable Generator
 router.post('/generate-timetable', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
-  const { division_id, department_id, semester_id, auto_publish } = req.body;
+  const {
+    division_id,
+    department_id,
+    semester_id,
+    auto_publish,
+    constraints = {}
+  } = req.body;
 
   if (!division_id) {
     return res.status(400).json({ error: 'division_id is required' });
@@ -98,86 +132,182 @@ router.post('/generate-timetable', authenticate, authorize(['SUPER_ADMIN', 'PRIN
     return res.status(400).json({ error: 'No subjects or faculty allocated to this division yet.' });
   }
 
-  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const SLOTS = [
-    '09:00 - 10:00',
-    '10:00 - 11:00',
-    '11:15 - 12:15',
-    '13:00 - 14:00',
-    '14:00 - 15:00',
-    '15:15 - 16:15'
-  ];
-  const ROOM = division.room_number || 'LH-302';
+  // Configurable Constraints with robust defaults
+  const facultyMaxHoursPerDay = Number(constraints.faculty_max_hours_per_day) || 4;
+  const maxSubjectHoursPerDay = Number(constraints.max_subject_hours_per_day) || 2;
+  const divisionMaxHoursPerDay = Number(constraints.division_max_hours_per_day) || 6;
+  const facultyUnavailability = Array.isArray(constraints.faculty_unavailability) ? constraints.faculty_unavailability : [];
 
-  // Constraint Tracking Sets
-  // 1. Faculty busy timeslot tracker: Set of `${faculty_id}_${day}_${slot}`
-  // 2. Division busy timeslot tracker: Set of `${division_id}_${day}_${slot}`
-  const existingEntries = db.prepare('SELECT division_id, day_of_week, time_slot, faculty_id FROM timetables').all();
+  const DAYS = (Array.isArray(constraints.preferred_days) && constraints.preferred_days.length > 0)
+    ? constraints.preferred_days
+    : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+  const SLOTS = (Array.isArray(constraints.time_slots) && constraints.time_slots.length > 0)
+    ? constraints.time_slots
+    : [
+        '09:00 - 10:00',
+        '10:00 - 11:00',
+        '11:15 - 12:15',
+        '13:00 - 14:00',
+        '14:00 - 15:00',
+        '15:15 - 16:15'
+      ];
+
+  const defaultRoom = division.room_number || 'LH-302';
+  const availableRooms = (Array.isArray(constraints.available_rooms) && constraints.available_rooms.length > 0)
+    ? constraints.available_rooms
+    : [defaultRoom, 'LH-303', 'LH-304'];
+
+  const availableLabs = (Array.isArray(constraints.available_labs) && constraints.available_labs.length > 0)
+    ? constraints.available_labs
+    : ['Computing Lab 1', 'Software Lab 2', 'AI & Data Lab', 'Hardware & Network Lab'];
+
+  // Constraint Tracking Sets & Counters
+  const existingEntries = db.prepare('SELECT division_id, day_of_week, time_slot, faculty_id, room_or_lab FROM timetables').all();
   const busyFacultySlots = new Set();
-  const busyDivisionSlots = new Set();
+  const busyRoomSlots = new Set();
 
   for (const entry of existingEntries) {
-    // If not regenerating this division, treat as fixed
     if (entry.division_id !== division_id) {
-      busyFacultySlots.add(`${entry.faculty_id}_${entry.day_of_week}_${entry.time_slot}`);
+      if (entry.faculty_id) busyFacultySlots.add(`${entry.faculty_id}_${entry.day_of_week}_${entry.time_slot}`);
+      if (entry.room_or_lab) busyRoomSlots.add(`${entry.room_or_lab}_${entry.day_of_week}_${entry.time_slot}`);
+    }
+  }
+
+  // Pre-load explicit faculty unavailability constraints
+  const facultyUnavailableSet = new Set();
+  for (const unavail of facultyUnavailability) {
+    if (unavail.faculty_id && unavail.day && unavail.time_slot) {
+      facultyUnavailableSet.add(`${unavail.faculty_id}_${unavail.day}_${unavail.time_slot}`);
     }
   }
 
   const generatedSchedule = [];
   const conflictsReport = [];
+  const conflictExplanations = [];
   let unsatisfiedConstraints = 0;
 
-  // Track subject lectures per day limit (max 1 or 2 per subject per day)
   const subjectDayCounts = {};
+  const facultyDayCounts = {};
+  const divisionDayCounts = {};
 
   let subIndex = 0;
   for (const day of DAYS) {
+    divisionDayCounts[day] = divisionDayCounts[day] || 0;
+
     for (const slot of SLOTS) {
-      // Rotate through subjects
+      // Check division daily max constraint
+      if (divisionDayCounts[day] >= divisionMaxHoursPerDay) {
+        unsatisfiedConstraints++;
+        const reason = `Division daily maximum teaching limit (${divisionMaxHoursPerDay} hrs/day) reached for ${day}`;
+        conflictsReport.push(reason);
+        conflictExplanations.push({
+          day,
+          time_slot: slot,
+          conflictType: 'DIVISION_DAILY_LIMIT',
+          reason,
+          suggestedResolution: 'Expand schedule to additional days or reduce weekly instructional hours.'
+        });
+        continue;
+      }
+
       let assigned = false;
       let attempts = 0;
+      const candidateRejections = [];
 
       while (!assigned && attempts < subjects.length) {
         const candidate = subjects[(subIndex + attempts) % subjects.length];
         const facKey = `${candidate.faculty_id}_${day}_${slot}`;
         const daySubKey = `${candidate.subject_id}_${day}`;
-        const dayCount = subjectDayCounts[daySubKey] || 0;
+        const dayFacKey = `${candidate.faculty_id}_${day}`;
 
-        // Check Hard Constraints:
-        // 1. Faculty is not busy in another division
-        // 2. Max 2 sessions for same subject in 1 day
-        if (!busyFacultySlots.has(facKey) && dayCount < 2) {
-          busyFacultySlots.add(facKey);
-          subjectDayCounts[daySubKey] = dayCount + 1;
+        const daySubCount = subjectDayCounts[daySubKey] || 0;
+        const dayFacCount = facultyDayCounts[dayFacKey] || 0;
 
-          generatedSchedule.push({
-            id: `tt-gen-${day.toLowerCase().slice(0, 2)}-${slot.slice(0, 2)}-${Math.floor(Math.random() * 1000)}`,
-            division_id,
-            day_of_week: day,
-            time_slot: slot,
-            subject_id: candidate.subject_id,
-            subject_code: candidate.code,
-            subject_name: candidate.name,
-            faculty_id: candidate.faculty_id,
-            faculty_name: candidate.faculty_name,
-            room_or_lab: ROOM
-          });
+        // Is this a practical laboratory or theory lecture?
+        const isLab = candidate.practical_hours > 0 ||
+          candidate.code.toUpperCase().includes('LAB') ||
+          candidate.name.toUpperCase().includes('LAB');
 
-          assigned = true;
-          subIndex = (subIndex + attempts + 1) % subjects.length;
-        } else {
-          attempts++;
+        const candidateRooms = isLab ? availableLabs : availableRooms;
+
+        // Check Hard Constraints
+        let failureReason = null;
+        if (busyFacultySlots.has(facKey)) {
+          failureReason = `Faculty ${candidate.faculty_name} is already assigned to another division at ${day} ${slot}`;
+        } else if (facultyUnavailableSet.has(facKey)) {
+          failureReason = `Faculty ${candidate.faculty_name} is declared unavailable at ${day} ${slot}`;
+        } else if (dayFacCount >= facultyMaxHoursPerDay) {
+          failureReason = `Faculty ${candidate.faculty_name} reached daily maximum limit (${facultyMaxHoursPerDay} hrs/day) on ${day}`;
+        } else if (daySubCount >= maxSubjectHoursPerDay) {
+          failureReason = `Subject ${candidate.name} reached daily limit (${maxSubjectHoursPerDay} sessions/day) on ${day}`;
         }
+
+        if (failureReason) {
+          candidateRejections.push({ subject: candidate.code, faculty: candidate.faculty_name, reason: failureReason });
+          attempts++;
+          continue;
+        }
+
+        // Find available room or lab
+        let selectedRoom = null;
+        for (const rm of candidateRooms) {
+          const roomKey = `${rm}_${day}_${slot}`;
+          if (!busyRoomSlots.has(roomKey)) {
+            selectedRoom = rm;
+            break;
+          }
+        }
+
+        if (!selectedRoom) {
+          failureReason = `All eligible ${isLab ? 'laboratories' : 'lecture halls'} (${candidateRooms.join(', ')}) are occupied at ${day} ${slot}`;
+          candidateRejections.push({ subject: candidate.code, faculty: candidate.faculty_name, reason: failureReason });
+          attempts++;
+          continue;
+        }
+
+        // Assign Slot
+        busyFacultySlots.add(facKey);
+        busyRoomSlots.add(`${selectedRoom}_${day}_${slot}`);
+        subjectDayCounts[daySubKey] = daySubCount + 1;
+        facultyDayCounts[dayFacKey] = dayFacCount + 1;
+        divisionDayCounts[day] = divisionDayCounts[day] + 1;
+
+        generatedSchedule.push({
+          id: `tt-gen-${day.toLowerCase().slice(0, 2)}-${slot.slice(0, 2)}-${Math.floor(Math.random() * 1000)}`,
+          division_id,
+          day_of_week: day,
+          time_slot: slot,
+          subject_id: candidate.subject_id,
+          subject_code: candidate.code,
+          subject_name: candidate.name,
+          faculty_id: candidate.faculty_id,
+          faculty_name: candidate.faculty_name,
+          room_or_lab: selectedRoom,
+          is_laboratory: isLab
+        });
+
+        assigned = true;
+        subIndex = (subIndex + attempts + 1) % subjects.length;
       }
 
       if (!assigned) {
         unsatisfiedConstraints++;
-        conflictsReport.push(`No available conflict-free faculty found for ${day} at ${slot}`);
+        const summaryReason = `No conflict-free slot for ${day} at ${slot}: ${candidateRejections.map(r => r.reason).join('; ')}`;
+        conflictsReport.push(summaryReason);
+        conflictExplanations.push({
+          day,
+          time_slot: slot,
+          conflictType: 'UNSATISFIABLE_SLOT_CONSTRAINTS',
+          reason: summaryReason,
+          candidateFailures: candidateRejections,
+          suggestedResolution: 'Review faculty unavailability, add additional lab/lecture capacity, or relax daily hour limits.'
+        });
       }
     }
   }
 
-  // If auto_publish is requested, save directly to database
+  // Auto-publish to database if requested
   if (auto_publish) {
     const tx = db.transaction(() => {
       db.prepare('DELETE FROM timetables WHERE division_id = ?').run(division_id);
@@ -188,7 +318,10 @@ router.post('/generate-timetable', authenticate, authorize(['SUPER_ADMIN', 'PRIN
       for (const item of generatedSchedule) {
         insert.run(item.id, item.division_id, item.day_of_week, item.time_slot, item.subject_id, item.faculty_id, item.room_or_lab);
       }
-      logAudit(req.user.id, req.user.role, 'PUBLISH_TIMETABLE', 'TIMETABLE', division_id, { slotsGenerated: generatedSchedule.length }, req);
+      logAudit(req.user.id, req.user.role, 'PUBLISH_TIMETABLE', 'TIMETABLE', division_id, {
+        slotsGenerated: generatedSchedule.length,
+        unsatisfiedConstraints
+      }, req);
     });
     tx();
   }
@@ -200,6 +333,15 @@ router.post('/generate-timetable', authenticate, authorize(['SUPER_ADMIN', 'PRIN
     slotsGenerated: generatedSchedule.length,
     unsatisfiedConstraints,
     conflictsReport,
+    conflictExplanations,
+    constraintsApplied: {
+      faculty_max_hours_per_day: facultyMaxHoursPerDay,
+      max_subject_hours_per_day: maxSubjectHoursPerDay,
+      division_max_hours_per_day: divisionMaxHoursPerDay,
+      faculty_unavailability_count: facultyUnavailability.length,
+      available_rooms_count: availableRooms.length,
+      available_labs_count: availableLabs.length
+    },
     isPublished: !!auto_publish,
     schedule: generatedSchedule
   });
@@ -267,34 +409,6 @@ router.post('/timetable/slot', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPA
 router.delete('/timetable/slot/:id', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
   db.prepare('DELETE FROM timetables WHERE id = ?').run(req.params.id);
   res.json({ success: true, message: 'Lecture slot removed from timetable' });
-});
-
-// GET /api/academics/timetable/conflict-check - Conflict evaluation pre-flight
-router.get('/timetable/conflict-check', authenticate, (req, res) => {
-  const { faculty_id, room_or_lab, day_of_week, time_slot, division_id } = req.query;
-
-  const facultyBusy = faculty_id ? db.prepare(`
-    SELECT tt.*, div.name as division_name, sub.name as subject_name, f.full_name as faculty_name
-    FROM timetables tt
-    JOIN divisions div ON tt.division_id = div.id
-    JOIN courses_subjects sub ON tt.subject_id = sub.id
-    JOIN faculty f ON tt.faculty_id = f.id
-    WHERE tt.faculty_id = ? AND tt.day_of_week = ? AND tt.time_slot = ?
-  `).get(faculty_id, day_of_week, time_slot) : null;
-
-  const roomBusy = room_or_lab ? db.prepare(`
-    SELECT tt.*, div.name as division_name, sub.name as subject_name
-    FROM timetables tt
-    JOIN divisions div ON tt.division_id = div.id
-    JOIN courses_subjects sub ON tt.subject_id = sub.id
-    WHERE tt.room_or_lab = ? AND tt.day_of_week = ? AND tt.time_slot = ?
-  `).get(room_or_lab, day_of_week, time_slot) : null;
-
-  res.json({
-    hasConflict: !!facultyBusy || !!roomBusy,
-    facultyConflict: facultyBusy || null,
-    roomConflict: roomBusy || null
-  });
 });
 
 module.exports = router;
