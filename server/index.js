@@ -111,9 +111,13 @@ app.use((req, res, next) => {
   });
 });
 
-// 8. Start listening
-app.listen(PORT, () => {
-  console.log(`🚀 Modern College ERP SaaS Backend running at http://localhost:${PORT}`);
-  console.log(`📡 Healthcheck available at http://localhost:${PORT}/api/health`);
-  console.log(`🩺 Deep Diagnostics available at http://localhost:${PORT}/api/health/deep`);
-});
+// 8. Start listening when run directly (local development or container daemon)
+if (require.main === module || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Modern College ERP SaaS Backend running at http://localhost:${PORT}`);
+    console.log(`📡 Healthcheck available at http://localhost:${PORT}/api/health`);
+    console.log(`🩺 Deep Diagnostics available at http://localhost:${PORT}/api/health/deep`);
+  });
+}
+
+module.exports = app;

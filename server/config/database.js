@@ -8,10 +8,22 @@ const createObjectId = (hex) => {
   return crypto.randomBytes(12).toString('hex');
 };
 
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
-const STORE_PATH = path.join(__dirname, '../db/mongo_store.json');
+let STORE_PATH = path.join(__dirname, '../db/mongo_store.json');
+if (process.env.VERCEL) {
+  try {
+    const tmpStorePath = path.join(os.tmpdir(), 'mongo_store.json');
+    if (!fs.existsSync(tmpStorePath) && fs.existsSync(STORE_PATH)) {
+      fs.copyFileSync(STORE_PATH, tmpStorePath);
+    }
+    STORE_PATH = tmpStorePath;
+  } catch (err) {
+    console.warn('Vercel temp document store notice:', err.message);
+  }
+}
 
 // Resilient Document Store with Disk Persistence for zero-friction local development and testing
 class InMemoryCollection {
