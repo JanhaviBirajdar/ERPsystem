@@ -326,6 +326,50 @@
         "workingDaysPerWeek": 5,
         "updatedAt": "2026-10-23T16:45:58.690Z"
       }
+    },
+    {
+      "_id": "8d0df8c4b13bee97d391afd8",
+      "name": "Vidya Tech Institute 0149",
+      "tenantCode": "VTI0149",
+      "subdomain": "vti0149",
+      "affiliation": "Autonomous National Technical University",
+      "naacGrade": "A+",
+      "aicteApprovalNo": "AICTE/VTI/0149",
+      "contact": {
+        "email": "admin@vti0149.edu.in",
+        "phone": "+91 20 4455 6677"
+      },
+      "subscription": {
+        "plan": "ENTERPRISE",
+        "status": "ACTIVE",
+        "provider": "VERIFIED_SANDBOX_GATEWAY",
+        "transactionId": "cs_1792774570534_9e61b2aa2e89d468",
+        "amountPaid": 119999,
+        "currency": "INR",
+        "activatedAt": "2026-10-23T16:56:10.540Z",
+        "currentPeriodEnd": "2027-10-23T16:56:10.540Z",
+        "lastVerifiedAt": "2026-10-23T16:56:10.540Z"
+      },
+      "createdAt": "2026-10-23T16:56:10.155Z",
+      "updatedAt": "2026-10-23T16:56:10.540Z",
+      "branding": {
+        "portalTitle": "Vidya Technological Research Portal",
+        "tagline": "Empowering Next-Gen Engineers",
+        "logoUrl": "/assets/vti-crest.png",
+        "primaryColor": "#059669",
+        "secondaryColor": "#064e3b",
+        "accentColor": "#7c3aed",
+        "updatedAt": "2026-10-23T16:56:10.337Z"
+      },
+      "academicSettings": {
+        "attendanceStatutoryMinPct": 80,
+        "attendanceCriticalPct": 65,
+        "passingMarksPct": 45,
+        "gradingScale": "10_POINT_CGPA",
+        "termsPerYear": 2,
+        "workingDaysPerWeek": 5,
+        "updatedAt": "2026-10-23T16:56:10.344Z"
+      }
     }
   ],
   "users": [
@@ -492,6 +536,18 @@
       "isActive": true,
       "createdAt": "2026-10-23T16:45:58.619Z",
       "updatedAt": "2026-10-23T16:45:58.619Z"
+    },
+    {
+      "_id": "d5e8ae8c771e3464889d660b",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "username": "admin_vti_0149",
+      "email": "r.deshmukh@vti0149.edu.in",
+      "passwordHash": "$2b$10$XTyRbKzIm2TAp9wqeDMExeWrRi2cKMhV/yO/NmMBla6IGUnDR4aW.",
+      "role": "COLLEGE_ADMIN",
+      "fullName": "Dr. Ramesh Deshmukh",
+      "isActive": true,
+      "createdAt": "2026-10-23T16:56:10.245Z",
+      "updatedAt": "2026-10-23T16:56:10.245Z"
     }
   ],
   "academic_years": [
@@ -584,6 +640,16 @@
       "endDate": "2027-06-30T00:00:00.000Z",
       "createdAt": "2026-10-23T16:45:58.621Z",
       "updatedAt": "2026-10-23T16:45:58.621Z"
+    },
+    {
+      "_id": "9ef4e616ef1db9b10781faf0",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "name": "2026-2027",
+      "isCurrent": true,
+      "startDate": "2026-07-01T00:00:00.000Z",
+      "endDate": "2027-06-30T00:00:00.000Z",
+      "createdAt": "2026-10-23T16:56:10.247Z",
+      "updatedAt": "2026-10-23T16:56:10.247Z"
     }
   ],
   "departments": [
@@ -1600,6 +1666,146 @@
       "timestamp": "2026-10-23T16:45:58.899Z",
       "createdAt": "2026-10-23T16:45:58.899Z",
       "updatedAt": "2026-10-23T16:45:58.899Z"
+    },
+    {
+      "_id": "132140dd7725682c434a560b",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "COLLEGE_ONBOARDED",
+      "entityType": "INSTITUTION",
+      "entityId": "8d0df8c4b13bee97d391afd8",
+      "details": "{\"name\":\"Vidya Tech Institute 0149\",\"tenantCode\":\"VTI0149\",\"subdomain\":\"vti0149\"}",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.248Z",
+      "createdAt": "2026-10-23T16:56:10.248Z",
+      "updatedAt": "2026-10-23T16:56:10.248Z"
+    },
+    {
+      "_id": "b1139775c05aed0f8bd38e87",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "USER_LOGIN",
+      "entityType": "USER",
+      "entityId": "d5e8ae8c771e3464889d660b",
+      "details": "Successful login",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.332Z",
+      "createdAt": "2026-10-23T16:56:10.332Z",
+      "updatedAt": "2026-10-23T16:56:10.332Z"
+    },
+    {
+      "_id": "bd76dae986c4b6634834ab5f",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "UPDATE_BRANDING",
+      "entityType": "INSTITUTION",
+      "entityId": "8d0df8c4b13bee97d391afd8",
+      "details": "{\"portalTitle\":\"Vidya Technological Research Portal\",\"tagline\":\"Empowering Next-Gen Engineers\",\"logoUrl\":\"/assets/vti-crest.png\",\"primaryColor\":\"#059669\",\"secondaryColor\":\"#064e3b\",\"accentColor\":\"#7c3aed\",\"updatedAt\":\"2026-10-23T16:56:10.337Z\"}",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.339Z",
+      "createdAt": "2026-10-23T16:56:10.339Z",
+      "updatedAt": "2026-10-23T16:56:10.339Z"
+    },
+    {
+      "_id": "651465383a9f5ff509614892",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "UPDATE_ACADEMIC_SETTINGS",
+      "entityType": "INSTITUTION",
+      "entityId": "8d0df8c4b13bee97d391afd8",
+      "details": "{\"attendanceStatutoryMinPct\":80,\"attendanceCriticalPct\":65,\"passingMarksPct\":45,\"gradingScale\":\"10_POINT_CGPA\",\"termsPerYear\":2,\"workingDaysPerWeek\":5,\"updatedAt\":\"2026-10-23T16:56:10.344Z\"}",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.346Z",
+      "createdAt": "2026-10-23T16:56:10.346Z",
+      "updatedAt": "2026-10-23T16:56:10.346Z"
+    },
+    {
+      "_id": "e8434b096c99794c5bdff76a",
+      "tenantId": "64f9a0011111111111111111",
+      "userId": "be440e157277e706a921e182",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "USER_LOGIN",
+      "entityType": "USER",
+      "entityId": "be440e157277e706a921e182",
+      "details": "Successful login",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.427Z",
+      "createdAt": "2026-10-23T16:56:10.427Z",
+      "updatedAt": "2026-10-23T16:56:10.427Z"
+    },
+    {
+      "_id": "5c7d0d3d28a6142457616b36",
+      "tenantId": "64f9b0022222222222222222",
+      "userId": "52b52351568ead4874a0a05a",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "USER_LOGIN",
+      "entityType": "USER",
+      "entityId": "52b52351568ead4874a0a05a",
+      "details": "Successful login",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.503Z",
+      "createdAt": "2026-10-23T16:56:10.503Z",
+      "updatedAt": "2026-10-23T16:56:10.503Z"
+    },
+    {
+      "_id": "3015e7b33653eca7c7469e8a",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "UPDATE_INSTITUTION",
+      "entityType": "INSTITUTION",
+      "entityId": "8d0df8c4b13bee97d391afd8",
+      "details": "{\"subscription\":{\"plan\":\"STARTER\",\"status\":\"ACTIVE\"}}",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.513Z",
+      "createdAt": "2026-10-23T16:56:10.513Z",
+      "updatedAt": "2026-10-23T16:56:10.513Z"
+    },
+    {
+      "_id": "0bfaac4eaf6218f4e3ac9659",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "UPDATE_INSTITUTION",
+      "entityType": "INSTITUTION",
+      "entityId": "8d0df8c4b13bee97d391afd8",
+      "details": "{\"subscription\":{\"plan\":\"ENTERPRISE\",\"status\":\"SUSPENDED\"}}",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.523Z",
+      "createdAt": "2026-10-23T16:56:10.523Z",
+      "updatedAt": "2026-10-23T16:56:10.523Z"
+    },
+    {
+      "_id": "e00b286c964070016f737bbd",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "userId": "d5e8ae8c771e3464889d660b",
+      "userRole": "COLLEGE_ADMIN",
+      "action": "UPDATE_INSTITUTION",
+      "entityType": "INSTITUTION",
+      "entityId": "8d0df8c4b13bee97d391afd8",
+      "details": "{\"subscription\":{\"plan\":\"STARTER\",\"status\":\"ACTIVE\"}}",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.531Z",
+      "createdAt": "2026-10-23T16:56:10.531Z",
+      "updatedAt": "2026-10-23T16:56:10.531Z"
+    },
+    {
+      "_id": "edcc21aba84cb9be1deebd9c",
+      "tenantId": null,
+      "userId": "67e1b6e98e2997d6c08dc615",
+      "userRole": "SUPER_ADMIN",
+      "action": "USER_LOGIN",
+      "entityType": "USER",
+      "entityId": "67e1b6e98e2997d6c08dc615",
+      "details": "Successful login",
+      "ipAddress": "::ffff:127.0.0.1",
+      "timestamp": "2026-10-23T16:56:10.619Z",
+      "createdAt": "2026-10-23T16:56:10.619Z",
+      "updatedAt": "2026-10-23T16:56:10.619Z"
     }
   ],
   "tenant_invoices": [
@@ -1670,6 +1876,23 @@
       "pdfReceiptUrl": "/api/v1/billing/invoices/inv_1792773958840_02e19858.pdf",
       "createdAt": "2026-10-23T16:45:58.840Z",
       "updatedAt": "2026-10-23T16:45:58.840Z"
+    },
+    {
+      "_id": "9f16c8c4e80c0778ec2fa40b",
+      "invoiceNumber": "INV-2026-4401",
+      "tenantId": "8d0df8c4b13bee97d391afd8",
+      "institutionName": "Vidya Tech Institute 0149",
+      "planId": "ENTERPRISE",
+      "amount": 119999,
+      "currency": "INR",
+      "status": "PAID",
+      "provider": "VERIFIED_SANDBOX_GATEWAY",
+      "transactionId": "cs_1792774570534_9e61b2aa2e89d468",
+      "periodStart": "2026-10-23T16:56:10.541Z",
+      "periodEnd": "2027-10-23T16:56:10.540Z",
+      "pdfReceiptUrl": "/api/v1/billing/invoices/inv_1792774570541_367a2130.pdf",
+      "createdAt": "2026-10-23T16:56:10.541Z",
+      "updatedAt": "2026-10-23T16:56:10.541Z"
     }
   ]
 }

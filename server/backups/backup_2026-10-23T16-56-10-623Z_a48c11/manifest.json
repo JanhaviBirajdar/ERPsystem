@@ -1,0 +1,16 @@
+{
+  "snapshotId": "backup_2026-10-23T16-56-10-623Z_a48c11",
+  "createdAt": "2026-10-23T16:56:10.677Z",
+  "initiatedBy": "saas_admin",
+  "integrity": {
+    "algorithm": "SHA-256",
+    "sqliteHash": "0ec01b405b359c384a2bf0cc6880bf11f2174370e5d5da6da81f34d36520b1a8",
+    "mongoHash": "e95bee73a08b02a5fc49ee0e5eb54e3b88238f77ab41a2c2ca50c0c1205e09eb"
+  },
+  "metrics": {
+    "students": 14,
+    "faculty": 6,
+    "institutions": 10
+  },
+  "status": "VERIFIED"
+}
