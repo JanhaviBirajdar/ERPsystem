@@ -24,19 +24,34 @@ const PORT = process.env.PORT || 5000;
 const { initWorkflowSchema } = require('./db/workflowSchema');
 const schedulerService = require('./services/schedulerService');
 
-// 2. Initialize Database & Seeds
-connectDB().then(async () => {
-  const institutions = getCollection('institutions');
-  const count = await institutions.countDocuments();
-  if (count === 0) {
-    await seedMultiTenant();
+// 2. Initialize Database & Seeds (Resilient for Serverless Cold Starts)
+let initPromise = null;
+const ensureInitialized = async () => {
+  if (!initPromise) {
+    initPromise = (async () => {
+      await connectDB();
+      const institutions = getCollection('institutions');
+      const count = await institutions.countDocuments();
+      if (count === 0) {
+        await seedMultiTenant();
+      }
+      seedExtensions();
+      initWorkflowSchema();
+      schedulerService.start();
+    })().catch(err => {
+      console.error('Database initialization error:', err);
+    });
   }
-  seedExtensions();
-  initWorkflowSchema();
-  schedulerService.start();
-}).catch(console.error);
+  return initPromise;
+};
+
+ensureInitialized();
 
 // 3. Security & Observability Middleware Stack
+app.use(async (req, res, next) => {
+  await ensureInitialized();
+  next();
+});
 app.use(secureHeaders);
 app.use(structuredLogger);
 app.use(cors({

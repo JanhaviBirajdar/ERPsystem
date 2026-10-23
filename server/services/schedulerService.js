@@ -12,10 +12,15 @@ class SchedulerService {
   }
 
   start() {
+    if (process.env.VERCEL) {
+      console.log('⏱️ Serverless environment detected: Interval scheduler skipped.');
+      return;
+    }
     if (this.timer) return;
     this.timer = setInterval(() => {
       this.runTick().catch(err => console.error('Scheduler tick error:', err.message));
     }, this.intervalMs);
+    if (this.timer.unref) this.timer.unref();
     console.log('⏱️ Workflow SLA & Scheduled Institutional Reports Engine active (60s tick).');
   }
 
