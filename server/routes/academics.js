@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const { authenticate, authorize, logAudit } = require('../middleware/auth');
+const { resolveTenant } = require('../middleware/tenantContext');
+const { requireEntitlement } = require('../middleware/subscriptionEntitlement');
 
 // GET /api/academics/subjects - Subjects with syllabus completion
 router.get('/subjects', authenticate, (req, res) => {
@@ -100,7 +102,7 @@ router.get('/timetable/:divisionId', authenticate, (req, res) => {
 });
 
 // POST /api/academics/generate-timetable - Constraint-based Smart Timetable Generator
-router.post('/generate-timetable', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
+router.post('/generate-timetable', authenticate, resolveTenant, requireEntitlement('SMART_TIMETABLE'), authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD']), (req, res) => {
   const {
     division_id,
     department_id,

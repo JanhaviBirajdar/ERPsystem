@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const { authenticate, authorize, logAudit } = require('../middleware/auth');
+const { resolveTenant } = require('../middleware/tenantContext');
+const { requireEntitlement } = require('../middleware/subscriptionEntitlement');
+
+router.use(authenticate);
+router.use(resolveTenant);
+router.use(requireEntitlement('EARLY_WARNING_ALERTS'));
 
 // Default Institutional Academic Support Policy Thresholds
 const DEFAULT_THRESHOLDS = {

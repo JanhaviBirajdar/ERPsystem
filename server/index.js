@@ -1,10 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { validateEnvironment } = require('./config/envValidator');
 const { connectDB, getCollection } = require('./config/database');
 const { seedMultiTenant } = require('./db/seedMultiTenant');
 const { seedExtensions } = require('./db/seedExtensions');
 const { errorHandler } = require('./middleware/errorHandler');
+const { structuredLogger } = require('./middleware/logger');
+const {
+  secureHeaders,
+  authRateLimiter,
+  aiRateLimiter,
+  apiRateLimiter,
+  inputSanitizer
+} = require('./middleware/security');
+
+// 1. Validate Production Environment Secrets & Configuration
+validateEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,7 +24,7 @@ const PORT = process.env.PORT || 5000;
 const { initWorkflowSchema } = require('./db/workflowSchema');
 const schedulerService = require('./services/schedulerService');
 
-// Initialize Database & Seeds
+// 2. Initialize Database & Seeds
 connectDB().then(async () => {
   const institutions = getCollection('institutions');
   const count = await institutions.countDocuments();
@@ -24,30 +36,37 @@ connectDB().then(async () => {
   schedulerService.start();
 }).catch(console.error);
 
+// 3. Security & Observability Middleware Stack
+app.use(secureHeaders);
+app.use(structuredLogger);
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
+  credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(inputSanitizer);
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Global API rate limiting
+app.use('/api', apiRateLimiter);
 
-// Request logger
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    if (req.originalUrl.startsWith('/api')) {
-      console.log(`[${req.method}] ${req.originalUrl} -> ${res.statusCode} (${duration}ms)`);
-    }
-  });
-  next();
-});
+// Health & Diagnostic Probes (Mounted before auth/tenant guards for container orchestrators)
+app.use('/api/health', require('./routes/health.routes'));
 
-// Phase 2 Modular MERN Multi-Tenant Routes
+// Specific Rate Limiters
+app.use('/api/auth/login', authRateLimiter);
+app.use('/api/v1/auth/login', authRateLimiter);
+app.use('/api/ai', aiRateLimiter);
+
+// 4. Phase 2 Modular MERN Multi-Tenant Routes
 app.use('/api/v1/auth', require('./routes/v1/auth.routes'));
 app.use('/api/v1/institution', require('./routes/v1/institution.routes'));
 app.use('/api/v1/academic-config', require('./routes/v1/academicConfig.routes'));
 app.use('/api/v1/audit', require('./routes/v1/audit.routes'));
+app.use('/api/v1/billing', require('./routes/v1/billing.routes'));
+app.use('/api/v1/backups', require('./routes/v1/backup.routes'));
 
-// Existing legacy endpoints (preserved for zero disruption)
+// 5. Existing Core Endpoints (Preserved with backward compatibility & zero disruption)
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/institution', require('./routes/institution'));
 app.use('/api/students', require('./routes/students'));
@@ -77,35 +96,24 @@ app.use('/api/v1/campus', require('./routes/campusOperations'));
 app.use('/api/workflows', require('./routes/workflows'));
 app.use('/api/v1/workflows', require('./routes/workflows'));
 
-
-// Healthcheck
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'HEALTHY',
-    service: 'Modern College ERP SaaS (MERN Multi-Tenant)',
-    version: '2.0.0',
-    phase: 'PHASE_2_COMPLETED',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Centralized RFC 7807 Error Handler
+// 6. Centralized RFC 7807 Error Handler
 app.use(errorHandler);
 
-// Serve frontend production build if available
+// 7. Serve frontend production build if available
 const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
 app.use((req, res, next) => {
   if (req.originalUrl.startsWith('/api')) return next();
   res.sendFile(path.join(clientDist, 'index.html'), (err) => {
     if (err) {
-      res.status(200).send('API Server Running. Start frontend client on port 5173 or build client.');
+      res.status(200).send('Modern College ERP API Server Running. Client running on port 5173 or build dist.');
     }
   });
 });
 
-// Start listening
+// 8. Start listening
 app.listen(PORT, () => {
   console.log(`🚀 Modern College ERP SaaS Backend running at http://localhost:${PORT}`);
   console.log(`📡 Healthcheck available at http://localhost:${PORT}/api/health`);
+  console.log(`🩺 Deep Diagnostics available at http://localhost:${PORT}/api/health/deep`);
 });

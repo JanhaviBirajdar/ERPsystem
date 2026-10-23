@@ -7,11 +7,12 @@ const suites = [
   'server/tests/analytics.test.js',
   'server/tests/support_alerts.test.js',
   'server/tests/smart_timetable.test.js',
-  'server/tests/search.test.js'
+  'server/tests/search.test.js',
+  'server/tests/multi_tenant_saas.test.js'
 ];
 
 console.log('================================================================');
-console.log('🎓 RUNNING COMPLETE VERIFICATION SUITE ACROSS ALL AI & ANALYTICS');
+console.log('🎓 RUNNING COMPLETE VERIFICATION SUITE ACROSS SAAS & AI CAPABILITIES');
 console.log('================================================================\n');
 
 for (const suite of suites) {
@@ -26,5 +27,5 @@ for (const suite of suites) {
 }
 
 console.log('================================================================');
-console.log('🏆 ALL 7 TEST SUITES (CORE, WORKFLOWS, FEATURES A-E) PASSED 100%');
+console.log('🏆 ALL 8 TEST SUITES (CORE, WORKFLOWS, AI, & SAAS) PASSED 100%');
 console.log('================================================================');

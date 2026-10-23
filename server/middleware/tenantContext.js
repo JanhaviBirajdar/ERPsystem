@@ -29,9 +29,14 @@ const resolveTenant = async (req, res, next) => {
             }
           });
         }
+      } else if (req.user.role === 'SUPER_ADMIN' && headerTenantId) {
+        const matchingInst = await institutions.findOne({
+          $or: [{ _id: headerTenantId }, { tenantCode: headerTenantId?.toUpperCase() }]
+        });
+        if (matchingInst) resolvedTenantId = matchingInst._id;
       }
     } 
-    // 2. Unauthenticated endpoint (e.g. login, onboarding, public verify)
+    // 2. Unauthenticated endpoint (e.g. login, onboarding, public verify) or SaaS Super Admin
     else {
       // Subdomain check (e.g. "ait.campuserp.io")
       const host = req.headers.host || '';
@@ -71,8 +76,8 @@ const resolveTenant = async (req, res, next) => {
  * Fails with 400 or 403 if missing.
  */
 const requireTenant = (req, res, next) => {
-  if (req.user && req.user.role === 'SUPER_ADMIN') {
-    return next(); // SaaS Super Admin has cross-tenant oversight
+  if (req.user && req.user.role === 'SUPER_ADMIN' && !req.headers['x-tenant-id']) {
+    return next(); // SaaS Super Admin has cross-tenant oversight when no specific tenant is targeted
   }
 
   if (!req.tenantId) {

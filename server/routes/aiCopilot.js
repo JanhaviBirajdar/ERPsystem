@@ -2,10 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const { authenticate, authorize, logAudit } = require('../middleware/auth');
+const { resolveTenant } = require('../middleware/tenantContext');
+const { requireEntitlement } = require('../middleware/subscriptionEntitlement');
 const aiCopilotService = require('../services/aiCopilotService');
 
+// All AI Copilot endpoints require authentication, tenant resolution, and AI entitlement
+router.use(authenticate);
+router.use(resolveTenant);
+router.use(requireEntitlement('AI_CAMPUS_COPILOT'));
+
 // POST /api/ai/chat - AI Campus Copilot Query Engine (Strictly Role-Scoped)
-router.post('/chat', authenticate, async (req, res) => {
+router.post('/chat', async (req, res) => {
   const { prompt } = req.body;
   if (!prompt || !prompt.trim()) {
     return res.status(400).json({ error: 'Prompt is required' });
@@ -39,7 +46,7 @@ router.post('/chat', authenticate, async (req, res) => {
 });
 
 // POST /api/ai/confirm-action - Confirm and execute consequential actions
-router.post('/confirm-action', authenticate, async (req, res, next) => {
+router.post('/confirm-action', async (req, res, next) => {
   try {
     const { actionId, confirmed = true } = req.body;
     if (!actionId) {
@@ -60,7 +67,7 @@ router.post('/confirm-action', authenticate, async (req, res, next) => {
 });
 
 // GET /api/ai/telemetry - Telemetry & Security audit logs for administrators
-router.get('/telemetry', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL']), (req, res) => {
+router.get('/telemetry', authorize(['SUPER_ADMIN', 'PRINCIPAL']), (req, res) => {
   const logs = db.prepare(`
     SELECT * FROM ai_usage_logs
     ORDER BY created_at DESC LIMIT 100

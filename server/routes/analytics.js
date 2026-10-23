@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/database');
 const { authenticate, authorize, logAudit } = require('../middleware/auth');
+const { resolveTenant } = require('../middleware/tenantContext');
+const { requireEntitlement } = require('../middleware/subscriptionEntitlement');
 
 // Formal Metric Definitions Documenting Calculation Methodology for Statutory Compliance
 const METRIC_DEFINITIONS = {
@@ -54,7 +56,7 @@ const METRIC_DEFINITIONS = {
 // ============================================================================
 
 // GET /api/analytics/management-overview - Multi-dimensional filtered analytics
-router.get('/management-overview', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT']), (req, res) => {
+router.get('/management-overview', authenticate, resolveTenant, requireEntitlement('ADVANCED_ANALYTICS'), authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT']), (req, res) => {
   const { department_id, semester_id, start_date, end_date } = req.query;
 
   // Build filter predicates
@@ -259,7 +261,7 @@ router.get('/management-overview', authenticate, authorize(['SUPER_ADMIN', 'PRIN
 // ============================================================================
 
 // GET /api/analytics/drilldown - Itemized records backing each KPI metric
-router.get('/drilldown', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT']), (req, res) => {
+router.get('/drilldown', authenticate, resolveTenant, requireEntitlement('ADVANCED_ANALYTICS'), authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT']), (req, res) => {
   const { metric, department_id, limit = 50 } = req.query;
 
   let query = '';
@@ -370,7 +372,7 @@ router.get('/drilldown', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'H
 // ============================================================================
 
 // GET /api/analytics/export - Export management metrics or drill-down to CSV
-router.get('/export', authenticate, authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT']), (req, res) => {
+router.get('/export', authenticate, resolveTenant, requireEntitlement('ADVANCED_ANALYTICS'), authorize(['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT']), (req, res) => {
   const { metric, department_id } = req.query;
 
   let query = '';

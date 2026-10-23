@@ -672,6 +672,101 @@ export const api = {
       method: 'POST',
       headers: getHeaders()
     }).then(handleResponse)
+  },
+
+  // Multi-Tenant SaaS Commercial v1 Endpoints
+  v1: {
+    auth: {
+      onboardCollege: (data) => fetch(`${API_BASE}/v1/auth/onboard-college`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      login: (username, password) => fetch(`${API_BASE}/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      }).then(handleResponse)
+    },
+    institution: {
+      get: () => fetch(`${API_BASE}/v1/institution`, { headers: getHeaders() }).then(handleResponse),
+      update: (data) => fetch(`${API_BASE}/v1/institution`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getBranding: () => fetch(`${API_BASE}/v1/institution/branding`, { headers: getHeaders() }).then(handleResponse),
+      updateBranding: (data) => fetch(`${API_BASE}/v1/institution/branding`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getAcademicSettings: () => fetch(`${API_BASE}/v1/institution/academic-settings`, { headers: getHeaders() }).then(handleResponse),
+      updateAcademicSettings: (data) => fetch(`${API_BASE}/v1/institution/academic-settings`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      listAll: () => fetch(`${API_BASE}/v1/institution/all`, { headers: getHeaders() }).then(handleResponse)
+    },
+    academicConfig: {
+      getAcademicYears: () => fetch(`${API_BASE}/v1/academic-config/academic-years`, { headers: getHeaders() }).then(handleResponse),
+      createAcademicYear: (data) => fetch(`${API_BASE}/v1/academic-config/academic-years`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getDepartments: () => fetch(`${API_BASE}/v1/academic-config/departments`, { headers: getHeaders() }).then(handleResponse),
+      createDepartment: (data) => fetch(`${API_BASE}/v1/academic-config/departments`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getCourses: () => fetch(`${API_BASE}/v1/academic-config/courses`, { headers: getHeaders() }).then(handleResponse),
+      createCourse: (data) => fetch(`${API_BASE}/v1/academic-config/courses`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getSemesters: () => fetch(`${API_BASE}/v1/academic-config/semesters`, { headers: getHeaders() }).then(handleResponse),
+      createSemester: (data) => fetch(`${API_BASE}/v1/academic-config/semesters`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getDivisions: () => fetch(`${API_BASE}/v1/academic-config/divisions`, { headers: getHeaders() }).then(handleResponse),
+      createDivision: (data) => fetch(`${API_BASE}/v1/academic-config/divisions`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse)
+    },
+    audit: {
+      getLogs: (params = {}) => {
+        const q = new URLSearchParams(params).toString();
+        return fetch(`${API_BASE}/v1/audit/logs?${q}`, { headers: getHeaders() }).then(handleResponse);
+      }
+    },
+    billing: {
+      getPlans: () => fetch(`${API_BASE}/v1/billing/plans`).then(handleResponse),
+      createCheckout: (data) => fetch(`${API_BASE}/v1/billing/checkout`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      }).then(handleResponse),
+      getInvoices: () => fetch(`${API_BASE}/v1/billing/invoices`, { headers: getHeaders() }).then(handleResponse)
+    },
+    backups: {
+      list: () => fetch(`${API_BASE}/v1/backups`, { headers: getHeaders() }).then(handleResponse),
+      create: () => fetch(`${API_BASE}/v1/backups/create`, {
+        method: 'POST',
+        headers: getHeaders()
+      }).then(handleResponse),
+      restore: (snapshotId) => fetch(`${API_BASE}/v1/backups/${snapshotId}/restore`, {
+        method: 'POST',
+        headers: getHeaders()
+      }).then(handleResponse)
+    }
   }
 };
 

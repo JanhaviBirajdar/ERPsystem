@@ -1,0 +1,62 @@
+name: College ERP CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, release/* ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-verify:
+    name: Automated Verification & Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Server Dependencies
+        run: |
+          cd server
+          npm ci
+
+      - name: Security Vulnerability Audit
+        run: |
+          cd server
+          npm audit --audit-level=high
+
+      - name: Install Client Dependencies
+        run: |
+          cd client
+          npm ci
+
+      - name: Verify Client Production Build
+        run: |
+          cd client
+          npm run build
+
+      - name: Launch ERP Server Daemon
+        env:
+          NODE_ENV: test
+          PORT: 5000
+          JWT_SECRET: ci-cd-testing-jwt-secret-minimum-32-characters
+          BILLING_HMAC_SECRET: ci-cd-testing-billing-secret-minimum-32-characters
+        run: |
+          node server/index.js &
+          sleep 5
+
+      - name: Execute Complete 8-Suite Verification Suite
+        run: |
+          npm test
+
+      - name: Validate Health & Deep Diagnostic Probes
+        run: |
+          curl -f http://127.0.0.1:5000/api/health
+          curl -f http://127.0.0.1:5000/api/health/ready
+          curl -f http://127.0.0.1:5000/api/health/deep

@@ -35,8 +35,32 @@ const authenticate = (req, res, next) => {
     user = db.prepare('SELECT id, username, full_name, email, role, department_id, avatar_url FROM users WHERE username = ? AND is_active = 1').get(decoded.username);
   }
 
+  // Multi-Tenant fallback to Document Store users collection
+  if (!user) {
+    const { getCollection } = require('../config/database');
+    const docUsers = getCollection('users');
+    const docUser = docUsers.docs.find(d => (d._id === userId || d.username === decoded.username) && d.isActive !== false);
+    if (docUser) {
+      user = {
+        id: docUser._id,
+        _id: docUser._id,
+        username: docUser.username,
+        full_name: docUser.fullName || docUser.username,
+        email: docUser.email,
+        role: docUser.role,
+        department_id: docUser.departmentId || null,
+        tenantId: docUser.tenantId || null
+      };
+    }
+  }
+
   if (!user) {
     return res.status(401).json({ error: 'User not found or account deactivated' });
+  }
+
+  if (decoded.tenantId) {
+    user.tenantId = decoded.tenantId;
+    req.tenantId = decoded.tenantId;
   }
 
   req.user = user;
