@@ -9,6 +9,9 @@ const { errorHandler } = require('./middleware/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const { initWorkflowSchema } = require('./db/workflowSchema');
+const schedulerService = require('./services/schedulerService');
+
 // Initialize Database & Seeds
 connectDB().then(async () => {
   const institutions = getCollection('institutions');
@@ -17,6 +20,8 @@ connectDB().then(async () => {
     await seedMultiTenant();
   }
   seedExtensions();
+  initWorkflowSchema();
+  schedulerService.start();
 }).catch(console.error);
 
 
@@ -67,6 +72,10 @@ app.use('/api/assignments', require('./routes/assignments'));
 app.use('/api/v1/assignments', require('./routes/assignments'));
 app.use('/api/campus', require('./routes/campusOperations'));
 app.use('/api/v1/campus', require('./routes/campusOperations'));
+
+// Workflow Automation & Self-Service Routes
+app.use('/api/workflows', require('./routes/workflows'));
+app.use('/api/v1/workflows', require('./routes/workflows'));
 
 
 // Healthcheck

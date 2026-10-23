@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, GraduationCap, Calendar, 
   CheckSquare, Award, CreditCard, BookOpen, Briefcase, 
   LifeBuoy, AlertTriangle, ShieldCheck, Settings, 
-  ChevronLeft, ChevronRight, LogOut, Sparkles, UserPlus, FileText, Building2
+  ChevronLeft, ChevronRight, LogOut, Sparkles, UserPlus, FileText, Building2, GitMerge
 } from 'lucide-react';
 
 export default function Sidebar({ currentTab, setTab, user, collapsed, setCollapsed, onOpenCopilot, onLogout }) {
@@ -12,6 +12,7 @@ export default function Sidebar({ currentTab, setTab, user, collapsed, setCollap
   // Navigation items scoped by institutional role
   const navItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT', 'ACCOUNTANT', 'LIBRARIAN', 'PLACEMENT_OFFICER'] },
+    { id: 'workflows', label: 'Workflows & Self-Service', icon: GitMerge, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'STUDENT', 'ACCOUNTANT', 'LIBRARIAN', 'PLACEMENT_OFFICER'], badge: 'PRO' },
     { id: 'admissions', label: 'Admissions & Intake', icon: UserPlus, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'ACCOUNTANT', 'ADMISSION_OFFICER'] },
     { id: 'students', label: 'Student Info (SIS)', icon: Users, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY', 'ACCOUNTANT'] },
     { id: 'faculty', label: 'Faculty & Workload', icon: GraduationCap, roles: ['SUPER_ADMIN', 'PRINCIPAL', 'HOD', 'FACULTY'] },

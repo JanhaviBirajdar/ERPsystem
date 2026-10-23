@@ -22,6 +22,7 @@ import ServiceDeskPage from './pages/ServiceDeskPage';
 import SupportSystemPage from './pages/SupportSystemPage';
 import NaacPage from './pages/NaacPage';
 import SettingsPage from './pages/SettingsPage';
+import WorkflowsPage from './pages/WorkflowsPage';
 
 import { api } from './services/api';
 import { GraduationCap, Shield, User, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -207,6 +208,7 @@ export default function App() {
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenCopilot={() => setIsCopilotOpen(true)}
           onOpenIdCard={() => handleOpenStudentIdCard()}
+          onNavigate={(tab) => setTab(tab)}
           theme={theme}
           setTheme={setTheme}
         />
@@ -220,6 +222,10 @@ export default function App() {
               onOpenCopilot={() => setIsCopilotOpen(true)}
               onOpenIdCard={() => handleOpenStudentIdCard()}
             />
+          )}
+
+          {currentTab === 'workflows' && (
+            <WorkflowsPage user={user} setTab={setTab} />
           )}
 
           {currentTab === 'admissions' && (

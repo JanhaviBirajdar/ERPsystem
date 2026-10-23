@@ -574,6 +574,71 @@ export const api = {
         return fetch(`/api/v1/audit/logs?${q}`, { headers: getHeaders() }).then(handleResponse);
       }
     }
+  },
+
+  // Workflow Automation & Self-Service Engine
+  workflows: {
+    getDefinitions: () => fetch(`${API_BASE}/workflows/definitions`, { headers: getHeaders() }).then(handleResponse),
+    updateDefinition: (id, data) => fetch(`${API_BASE}/workflows/definitions/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getInstances: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/workflows/instances?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    getInstance: (id) => fetch(`${API_BASE}/workflows/instances/${id}`, { headers: getHeaders() }).then(handleResponse),
+    startWorkflow: (data) => fetch(`${API_BASE}/workflows/instances`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    executeAction: (id, action, comments = '') => fetch(`${API_BASE}/workflows/instances/${id}/action`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ action, comments })
+    }).then(handleResponse),
+    getInbox: () => fetch(`${API_BASE}/workflows/inbox`, { headers: getHeaders() }).then(handleResponse),
+    getStudentSelfService: (userId) => {
+      const q = userId ? `?user_id=${userId}` : '';
+      return fetch(`${API_BASE}/workflows/self-service/student${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    getFacultySelfService: (userId) => {
+      const q = userId ? `?user_id=${userId}` : '';
+      return fetch(`${API_BASE}/workflows/self-service/faculty${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    getDocument: (id) => fetch(`${API_BASE}/workflows/documents/${id}`, { headers: getHeaders() }).then(handleResponse),
+    verifyDocument: (code) => fetch(`${API_BASE}/workflows/documents/verify/${code}`).then(handleResponse),
+    getNotifications: (params = {}) => {
+      const q = new URLSearchParams(params).toString();
+      return fetch(`${API_BASE}/workflows/notifications?${q}`, { headers: getHeaders() }).then(handleResponse);
+    },
+    markNotificationRead: (id) => fetch(`${API_BASE}/workflows/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: getHeaders()
+    }).then(handleResponse),
+    markAllNotificationsRead: () => fetch(`${API_BASE}/workflows/notifications/read-all`, {
+      method: 'PUT',
+      headers: getHeaders()
+    }).then(handleResponse),
+    getAnnouncements: () => fetch(`${API_BASE}/workflows/announcements`, { headers: getHeaders() }).then(handleResponse),
+    publishAnnouncement: (data) => fetch(`${API_BASE}/workflows/announcements`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    }).then(handleResponse),
+    getReports: (reportType = 'WORKFLOW_COMPLIANCE_DAILY', format = 'json') => {
+      if (format === 'csv') {
+        return fetch(`${API_BASE}/workflows/reports?report_type=${reportType}&format=csv`, { headers: getHeaders() }).then(res => res.text());
+      }
+      return fetch(`${API_BASE}/workflows/reports?report_type=${reportType}&format=json`, { headers: getHeaders() }).then(handleResponse);
+    },
+    getScheduledReports: () => fetch(`${API_BASE}/workflows/reports/scheduled`, { headers: getHeaders() }).then(handleResponse),
+    triggerSchedulerTick: () => fetch(`${API_BASE}/workflows/scheduler/tick`, {
+      method: 'POST',
+      headers: getHeaders()
+    }).then(handleResponse)
   }
 };
 

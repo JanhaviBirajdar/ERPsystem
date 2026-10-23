@@ -8,57 +8,61 @@ export default function Header({
   onOpenSearch, 
   onOpenCopilot, 
   onOpenIdCard,
+  onNavigate,
   theme, 
   setTheme 
 }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 'notif-1',
-      title: 'Mid-Term Exam Schedule Published',
-      message: 'Autonomous semester examination timetable has been finalized for all departments.',
-      time: '10 mins ago',
-      category: 'Exam',
-      priority: 'urgent',
-      read: false
-    },
-    {
-      id: 'notif-2',
-      title: 'Fee Payment Installment Deadline',
-      message: 'Second installment deadline for Academic Year 2025-26 ends on 30th October.',
-      time: '1 hour ago',
-      category: 'Finance',
-      priority: 'urgent',
-      read: false
-    },
-    {
-      id: 'notif-3',
-      title: 'NAAC SSR Documentation Review',
-      message: 'Criterion 2 teaching-learning verification scheduled tomorrow at 11:00 AM.',
-      time: '3 hours ago',
-      category: 'Academic',
-      priority: 'normal',
-      read: false
-    },
-    {
-      id: 'notif-4',
-      title: 'Placement Drive: Tata Elxsi',
-      message: 'Shortlisted candidates for round 2 technical interviews updated on the portal.',
-      time: 'Yesterday',
-      category: 'Placement',
-      priority: 'normal',
-      read: true
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [user]);
+
+  const loadNotifications = async () => {
+    try {
+      const res = await fetch('/api/workflows/notifications?limit=10', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('erp_token')}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications((data.notifications || []).map(n => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          category: n.category,
+          priority: n.priority ? n.priority.toLowerCase() : 'normal',
+          read: Boolean(n.is_read)
+        })));
+      }
+    } catch (e) {
+      // fallback
     }
-  ]);
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const markAllRead = async () => {
+    try {
+      await fetch('/api/workflows/notifications/read-all', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('erp_token')}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (e) {}
   };
 
-  const markItemRead = (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  const markItemRead = async (id) => {
+    try {
+      await fetch(`/api/workflows/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('erp_token')}` }
+      });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (e) {}
   };
 
   return (
@@ -243,6 +247,32 @@ export default function Header({
                   ))
                 )}
               </div>
+
+              {onNavigate && (
+                <div style={{
+                  padding: '10px 16px',
+                  background: 'var(--bg-muted, #f8fafc)',
+                  borderTop: '1px solid var(--border-color, #f1f5f9)',
+                  textAlign: 'center'
+                }}>
+                  <button
+                    onClick={() => {
+                      setIsNotificationsOpen(false);
+                      onNavigate('workflows');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--primary, #2563eb)',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View All in Workflow Hub →
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
