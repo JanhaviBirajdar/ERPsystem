@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Sparkles, Moon, Sun, Bell, CreditCard, Shield } from 'lucide-react';
 
 export default function Header({ 
