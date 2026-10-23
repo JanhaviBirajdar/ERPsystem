@@ -43,27 +43,40 @@ export default function DashboardPage({ user, setTab, onOpenCopilot, onOpenIdCar
     <div>
       {/* Welcome Banner */}
       <div style={{ 
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', 
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', 
         borderRadius: 'var(--radius-xl)', 
         padding: '24px 28px', 
-        color: 'white', 
         marginBottom: '24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: 'var(--shadow-md)'
+        border: '1px solid #e2e8f0',
+        borderLeft: '5px solid #2563eb',
+        boxShadow: 'var(--shadow-sm)'
       }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(37, 99, 235, 0.25)', border: '1px solid rgba(59, 130, 246, 0.4)', padding: '3px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 600, color: '#93c5fd', marginBottom: '8px' }}>
-            <ShieldCheck size={13} />
+          <div style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            background: '#eff6ff', 
+            border: '1px solid #bfdbfe', 
+            padding: '4px 12px', 
+            borderRadius: 'var(--radius-pill)', 
+            fontSize: '0.75rem', 
+            fontWeight: 700, 
+            color: '#1d4ed8', 
+            marginBottom: '8px' 
+          }}>
+            <ShieldCheck size={14} color="#2563eb" />
             Autonomous Engineering College • NAAC A++ Grade
           </div>
-          <h1 style={{ color: 'white', fontSize: '1.6rem', fontWeight: 700, margin: 0 }}>
+          <h1 style={{ color: '#0f172a', fontSize: '1.65rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
             Welcome back, {user?.full_name}
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginTop: '4px' }}>
+          <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '4px', fontWeight: 500 }}>
             {user?.role === 'STUDENT' 
               ? 'Third Year Engineering • Academic Session 2026-2027 • "One Campus. One Platform. Smarter Education."'
               : `${user?.role?.replace('_', ' ')} Workspace • Unified Institutional Management Portal`}
@@ -72,14 +85,19 @@ export default function DashboardPage({ user, setTab, onOpenCopilot, onOpenIdCar
 
         <div style={{ display: 'flex', gap: '10px' }}>
           {user?.role === 'STUDENT' && (
-            <button className="btn btn-secondary" onClick={onOpenIdCard} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <button className="btn btn-secondary" onClick={onOpenIdCard} style={{ background: '#ffffff', color: '#334155', border: '1px solid #d0d5dd', boxShadow: 'var(--shadow-xs)' }}>
               <span>Digital ID Card</span>
             </button>
           )}
           <button 
             className="btn btn-primary"
             onClick={onOpenCopilot}
-            style={{ background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)', border: 'none' }}
+            style={{ 
+              background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)', 
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+              fontWeight: 600
+            }}
           >
             <Sparkles size={16} />
             <span>AI Campus Copilot</span>
